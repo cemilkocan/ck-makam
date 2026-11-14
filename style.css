@@ -220,6 +220,25 @@ main { max-width: 1340px; margin: 0 auto; padding: 18px; display: grid; gap: 16p
 }
 .ruler .tick.beat { color: var(--ink2); font-weight: 600; }
 
+/* ---------- youtube row ---------- */
+.ytrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 4px; }
+#ytUrl {
+  flex: 1 1 320px; min-width: 200px; padding: 9px 12px;
+  background: var(--bg2); color: var(--ink); font: inherit; font-size: 13px;
+  border: 1px solid var(--edge); border-radius: 10px;
+}
+#ytUrl::placeholder { color: var(--muted); }
+#ytUrl:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }
+button#ytGrab.on { background: var(--accent); border-color: transparent; color: #fff; }
+button#ytGrab:disabled { opacity: 0.45; cursor: not-allowed; }
+#ytBox {
+  position: relative; width: 100%; max-width: 560px; margin: 10px 0 2px;
+  aspect-ratio: 16 / 9; background: var(--bg2);
+  border: 1px solid var(--edge); border-radius: 12px; overflow: hidden;
+}
+#ytBox[hidden] { display: none; }
+#ytBox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
 .rec-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 12px; }
 
 /* ---------- piano roll ---------- */

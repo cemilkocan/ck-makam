@@ -147,10 +147,18 @@ const I18N = {
     fileLoaded: "Dosya yüklendi,", fileBad: "Bu dosya okunamadı.",
     uploadHint: "Kendi mp3 ya da wav dosyanı yükleyip katman olarak kullanabilirsin. Notaya çevir, tek sesli kayıtlarda çalışır: mırıldanma, tek bir çalgı ya da solo vokal. Karışık bir şarkıyı enstrümanlarına ayırmaz, onu tarayıcıda yapmak mümkün değil.",
     uploadHelp: "Notaya çevir tek sesli kayıtlarda çalışır, yani aynı anda tek bir perde duyulan kayıtlarda.\n\nEn iyi sonucu verenler:\n• Kendi mırıldanman ya da ıslığın. Telefonla sessiz bir odada kaydet, on on beş saniye yeter.\n• Tek bir çalgının solo kaydı: bağlama, ney, keman, flüt, piyano tek elle.\n• Araya çalgı karışmayan solo vokal.\n\nÇalışmayan: tam bir şarkı kaydı. Davul, bas ve birkaç çalgı aynı anda çalarken hangi sesin melodi olduğu ayırt edilemez, ortaya rastgele notalar çıkar. Karışık bir kaydı enstrümanlarına ayırmak ayrı bir iştir ve tarayıcıda yapılamaz.\n\nKayıt ipuçları: arkada televizyon, klima ya da sokak sesi olmasın. Mikrofona çok yaklaşma, patlama sesleri perdeyi bozar. Tempoyu önce uygulamada ayarla; loop çalarken mırıldanırsan notalar doğru yere oturur. mp3, wav, m4a ve ogg okunur.\n\nSon olarak: başkasının şarkısını indirip kullanmak hem eser sahibinin hakkına girer hem de çoğu sitenin kurallarına aykırıdır. Kendi sesin ya da kendi çaldığın kayıt hem en doğru sonucu verir hem de sorunsuzdur. Hazır ses arıyorsan Freesound'un CC0 bölümüne bak.",
-    fileTitle: "Dosyadan çıkar", pickFile: "Dosya seç", getRhythm: "Ritmi çıkar",
+    fileTitle: "Dosyadan ya da YouTube'dan çıkar", pickFile: "Dosya seç", getRhythm: "Ritmi çıkar",
     getMelody: "Melodiyi çıkar", asLayer: "Katman yap", reading: "Dosya okunuyor...",
     hitsFound: "vuruş yerleşti", noRhythm: "Belirgin bir ritim bulunamadı.",
     fileHint: "mp3, wav, m4a, opus, ogg, aac, flac ve mp4 okunur. Ritmi çıkar tam şarkılarda da çalışır: tempoyu bulur, vuruşları bandlarına göre düm, tek ve tek tiz satırlarına dağıtır. Melodiyi çıkar yalnızca tek sesli kayıtlarda işe yarar.",
+    ytLoad: "Aç", ytGrab: "Sesi yakala", ytStop: "Yakalamayı durdur",
+    ytGrabbing: "Dinliyor. Video oynamıyorsa oynat düğmesine bas.",
+    ytOpened: "Video açıldı. Sesi yakala'ya bas, sekme sesini paylaş.",
+    ytBad: "Bu bağlantıdan video kimliği çıkmadı. youtube.com/watch?v=... ya da youtu.be/... olmalı.",
+    ytDenied: "Paylaşım iptal edildi.", ytNoAudio: "Ses gelmiyor. Paylaşırken sekme sesini de paylaş kutusunu işaretle.",
+    ytNoGrab: "Bu tarayıcı sekme sesi paylaşmıyor. Masaüstü Chrome, Edge ya da Opera gerekiyor. Burada dosya seçmeyi kullan.",
+    ytEmpty: "Hiç ses yakalanmadı, tekrar dene.", ytGot: "Ses yakalandı,",
+    ytHelp: "YouTube'dan ses indirmek ne bizim elimizde ne de YouTube'un kurallarına uygun. Burada yapılan şey başka: tarayıcında o an çalan sesi dinliyoruz. Video senin sekmende oynuyor, uygulama da onu duyduğu kadarıyla ritmini ve melodisini çıkarıyor. Hiçbir yere dosya inmiyor, hiçbir sunucuya bir şey gitmiyor.\n\nNasıl yapılır:\n1. Bağlantıyı yapıştır, Aç'a bas. Video panelin içinde açılır.\n2. Sesi yakala'ya bas. Tarayıcı ne paylaşacağını sorar. Chrome sekmesi'ni seç, bu sekmeyi işaretle ve sekme sesini de paylaş kutusunu açık bırak.\n3. Video kendi başlamazsa oynat düğmesine bas. Kırk beş saniye sonra yakalama kendiliğinden durur, istediğin an da durdurabilirsin.\n4. Sonra Ritmi çıkar ya da Melodiyi çıkar. İkisi de dosyadan çıkarmayla aynı şekilde çalışır.\n\nVideoyu başka bir sekmede açıp o sekmeyi paylaşmak da olur, o zaman oynatmayı kendin başlatırsın.\n\nBu yöntem masaüstü Chrome, Edge ve Opera'da çalışıyor. Telefon ve tablet tarayıcıları sekme sesi paylaşmıyor, Firefox ve Safari de desteklemiyor. Orada dosya seçmeyi kullan.\n\nRitmi çıkar tam şarkılarda işe yarar. Melodiyi çıkar yalnızca tek sesli kayıtlarda, yani davul ve bas altta çalarken doğru nota vermez. Bir de şu var: başkasının eserinden çıkardığın melodiyi yayınlamak eser sahibinin hakkına girer. Kendin için çalışmak, öğrenmek ve denemek serbest; paylaşacağın işte kendi melodini kullan.",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
     micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko", fxChorus: "Koro", fxDrive: "Bozulma",
@@ -257,10 +265,18 @@ const I18N = {
     fileLoaded: "File loaded,", fileBad: "That file could not be read.",
     uploadHint: "Load your own mp3 or wav and use it as a layer. Find the melody works on single-voice material: humming, one instrument, or a solo vocal. It does not split a finished song into its instruments, which a browser cannot do.",
     uploadHelp: "Find the melody works on single-voice material, where only one pitch sounds at a time.\n\nWhat works best:\n• Your own humming or whistling. A phone in a quiet room, ten or fifteen seconds is plenty.\n• One instrument on its own: bağlama, ney, violin, flute, piano with one hand.\n• A solo vocal with no instruments behind it.\n\nWhat does not work: a finished song. With drums, bass and several instruments at once there is no way to tell which pitch is the melody, and you get nonsense notes. Splitting a mixed recording into its instruments is a different job and a browser cannot do it.\n\nRecording tips: no television, air conditioning or street noise behind you. Do not crowd the mic, plosives ruin the pitch. Set the tempo first; if you hum while the loop plays, the notes land in the right place. mp3, wav, m4a and ogg are read.\n\nOne last thing: taking somebody else's song and uploading it goes against the rights of whoever made it and against most sites' terms. Your own voice or your own playing gives the better result anyway. For ready-made audio, look at the CC0 section of Freesound.",
-    fileTitle: "Take it from a file", pickFile: "Choose a file", getRhythm: "Find the rhythm",
+    fileTitle: "Take it from a file or YouTube", pickFile: "Choose a file", getRhythm: "Find the rhythm",
     getMelody: "Find the melody", asLayer: "Use as a layer", reading: "Reading the file...",
     hitsFound: "hits placed", noRhythm: "No clear rhythm found.",
     fileHint: "mp3, wav, m4a, opus, ogg, aac, flac and mp4 are read. Find the rhythm works on full songs: it finds the tempo and sorts the hits into the dum, tek and tek hi rows by frequency band. Find the melody only works on single-voice material.",
+    ytLoad: "Open", ytGrab: "Catch the sound", ytStop: "Stop catching",
+    ytGrabbing: "Listening. If the video is not playing, press play.",
+    ytOpened: "Video open. Press Catch the sound and share the tab audio.",
+    ytBad: "No video id in that link. It should look like youtube.com/watch?v=... or youtu.be/...",
+    ytDenied: "Sharing was cancelled.", ytNoAudio: "No sound is coming through. Tick the share tab audio box when you share.",
+    ytNoGrab: "This browser does not share tab audio. Desktop Chrome, Edge or Opera is needed. Use Choose a file here.",
+    ytEmpty: "Nothing was caught, try again.", ytGot: "Sound caught,",
+    ytHelp: "Downloading audio from YouTube is neither something we can do nor something YouTube's terms allow. What happens here is different: the app listens to the sound playing in your own browser. The video runs in your tab and the app takes the rhythm and melody from what it hears. Nothing is downloaded and nothing is sent to any server.\n\nHow to do it:\n1. Paste the link and press Open. The video appears inside the panel.\n2. Press Catch the sound. The browser asks what to share. Choose Chrome Tab, pick this tab, and leave the share tab audio box ticked.\n3. If the video does not start on its own, press play. Catching stops by itself after forty-five seconds, and you can stop it whenever you like.\n4. Then use Find the rhythm or Find the melody. Both work exactly as they do with a file.\n\nYou can also open the video in another tab and share that tab instead; then you start playback yourself.\n\nThis works in desktop Chrome, Edge and Opera. Phone and tablet browsers do not share tab audio, and neither do Firefox or Safari. Use Choose a file there.\n\nFind the rhythm works on full songs. Find the melody only works on single-voice material, so it will not give you the right notes while drums and bass are playing underneath. One more thing: publishing a melody you lifted from someone else's work goes against their rights. Working it out for yourself, to learn or to try something, is fine; for anything you release, use your own melody.",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
     micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo", fxChorus: "Chorus", fxDrive: "Drive",
@@ -1528,6 +1544,121 @@ async function loadAudioFile(file) {
   }
 }
 
+/* ---------- YouTube: listen to what is playing in the tab ---------- */
+
+const YT_ORIGIN = "https://www.youtube-nocookie.com";
+let grabStream = null, grabRec = null, grabChunks = [], grabTimer = 0;
+
+// pull the video id out of whatever form of link was pasted
+function ytId(raw) {
+  const str = (raw || "").trim();
+  if (!str) return "";
+  if (/^[\w-]{11}$/.test(str)) return str;
+  let u;
+  try { u = new URL(str.startsWith("http") ? str : "https://" + str); } catch (e) { return ""; }
+  const host = u.hostname.replace(/^www\.|^m\./, "");
+  if (host === "youtu.be") return (u.pathname.slice(1).split("/")[0] || "").slice(0, 11);
+  if (!/(^|\.)youtube(-nocookie)?\.com$/.test(host)) return "";
+  const v = u.searchParams.get("v");
+  if (v) return v.slice(0, 11);
+  const m = u.pathname.match(/\/(embed|shorts|live|v)\/([\w-]{11})/);
+  return m ? m[2] : "";
+}
+
+function ytCmd(func, args) {
+  const f = $("ytBox").querySelector("iframe");
+  if (!f || !f.contentWindow) return;
+  try {
+    f.contentWindow.postMessage(JSON.stringify({ event: "command", func: func, args: args || [] }), YT_ORIGIN);
+  } catch (e) {}
+}
+
+function openYt() {
+  const id = ytId($("ytUrl").value);
+  const box = $("ytBox"), st = $("ytStatus");
+  if (!id) { box.hidden = true; box.innerHTML = ""; st.textContent = t("ytBad"); return; }
+  const src = YT_ORIGIN + "/embed/" + encodeURIComponent(id) +
+    "?enablejsapi=1&rel=0&playsinline=1&origin=" + encodeURIComponent(location.origin);
+  box.innerHTML = '<iframe src="' + src + '" title="YouTube" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>';
+  box.hidden = false;
+  const f = box.querySelector("iframe");
+  f.addEventListener("load", () => {
+    try {
+      f.contentWindow.postMessage(JSON.stringify({ event: "listening", id: "ckmakam" }), YT_ORIGIN);
+    } catch (e) {}
+  });
+  st.textContent = t("ytOpened");
+}
+
+const canGrab = () => !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
+
+async function toggleGrab() {
+  if (grabRec) { stopGrab(); return; }
+  const st = $("ytStatus");
+  if (!canGrab()) { st.textContent = t("ytNoGrab"); return; }
+  await initAudio();
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+  } catch (e) { st.textContent = t("ytDenied"); return; }
+  const tracks = stream.getAudioTracks();
+  if (!tracks.length) {
+    stream.getTracks().forEach(tr => tr.stop());
+    st.textContent = t("ytNoAudio");
+    return;
+  }
+  grabStream = stream;
+  grabChunks = [];
+  // the browser bar can end the share at any time
+  stream.getTracks().forEach(tr => { tr.onended = () => { if (grabRec) stopGrab(); }; });
+  const rec = new MediaRecorder(new MediaStream(tracks));
+  grabRec = rec;
+  rec.ondataavailable = e => { if (e.data && e.data.size) grabChunks.push(e.data); };
+  rec.onstop = finishGrab;
+  rec.start();
+  $("ytGrab").textContent = t("ytStop");
+  $("ytGrab").classList.add("on");
+  st.textContent = t("ytGrabbing");
+  // if the video sits in our own panel, start it from the top
+  setTimeout(() => { ytCmd("seekTo", [0, true]); ytCmd("playVideo"); }, 400);
+  grabTimer = setTimeout(() => { if (grabRec) stopGrab(); }, 45000);
+}
+
+function stopGrab() {
+  clearTimeout(grabTimer);
+  grabTimer = 0;
+  ytCmd("pauseVideo");
+  if (grabRec && grabRec.state !== "inactive") { try { grabRec.stop(); } catch (e) { finishGrab(); } }
+  else finishGrab();
+}
+
+async function finishGrab() {
+  const type = (grabRec && grabRec.mimeType) || "audio/webm";
+  const chunks = grabChunks;
+  grabChunks = [];
+  grabRec = null;
+  if (grabStream) { grabStream.getTracks().forEach(tr => tr.stop()); grabStream = null; }
+  $("ytGrab").textContent = t("ytGrab");
+  $("ytGrab").classList.remove("on");
+  const st = $("ytStatus");
+  const blob = new Blob(chunks, { type: type });
+  if (blob.size < 4000) { st.textContent = t("ytEmpty"); return; }
+  try {
+    await initAudio();
+    state.fileBuf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    $("fileTools").hidden = false;
+    drawFileWave();
+    st.textContent = t("ytGot") + " " + state.fileBuf.duration.toFixed(1) + "s";
+    $("fileStatus").textContent = "";
+  } catch (e) {
+    state.fileBuf = null;
+    st.textContent = t("fileBad");
+  }
+}
+
 function drawFileWave() {
   const c = $("fileWave");
   if (!c) return;
@@ -2697,6 +2828,7 @@ function init() {
   wireHelp("rollHelp", () => t("rollHint"));
   wireHelp("wheelHelp", () => t("wheelHelp"));
   wireHelp("uploadHelp", () => t("uploadHelp"));
+  wireHelp("ytHelp", () => t("ytHelp"));
   document.addEventListener("click", e => {
     if (!e.target.closest(".help") && !e.target.closest("#tip")) hideTip();
   });
@@ -2730,6 +2862,11 @@ function init() {
     blur(e);
   });
   $("pickFile").addEventListener("click", () => $("audioFile").click());
+  $("ytLoad").addEventListener("click", openYt);
+  $("ytUrl").addEventListener("keydown", e => { if (e.key === "Enter") openYt(); });
+  $("ytUrl").addEventListener("paste", () => setTimeout(openYt, 0));
+  $("ytGrab").addEventListener("click", toggleGrab);
+  if (!canGrab()) $("ytGrab").disabled = true;
   $("audioFile").addEventListener("change", e => { if (e.target.files[0]) loadAudioFile(e.target.files[0]); });
   $("getRhythm").addEventListener("click", rhythmFromFile);
   $("getMelody").addEventListener("click", () => melodyToNotes(true));
