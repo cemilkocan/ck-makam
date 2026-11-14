@@ -1,0 +1,150 @@
+:root {
+  --bg: #1b1713;
+  --panel: #262019;
+  --panel2: #2f2820;
+  --ink: #f2e7d8;
+  --muted: #a89a86;
+  --accent: #c2502a;
+  --accent2: #e0a438;
+  --green: #4f9d5f;
+  --line: #3b332a;
+  --radius: 10px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  padding-bottom: 40px;
+}
+a { color: var(--accent2); }
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 5;
+}
+.logo { height: 44px; width: auto; filter: brightness(1.9); }
+.transport { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+button {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+button:active { transform: translateY(1px); }
+button.big {
+  background: var(--green);
+  border-color: transparent;
+  font-weight: 600;
+  min-width: 92px;
+  padding: 10px 18px;
+}
+button.big.playing { background: var(--accent); }
+button.rec { border-color: var(--accent); }
+button.rec.armed { background: var(--accent); font-weight: 600; }
+button.ghost { background: transparent; }
+.tempo input[type=number] {
+  width: 64px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+input[type=range] { accent-color: var(--accent); }
+select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+label { display: inline-flex; align-items: center; gap: 6px; }
+
+main { max-width: 1060px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.panel-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.panel-head h2 { margin: 0 8px 0 0; font-size: 18px; }
+.vol { margin-left: auto; }
+.hint { color: var(--muted); font-size: 13px; margin: 8px 0 10px; }
+.muted { color: var(--muted); font-size: 13px; }
+
+.grid { display: grid; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.grid .row { display: flex; gap: 4px; align-items: center; }
+.grid .rowlabel {
+  flex: 0 0 56px;
+  font-size: 13px;
+  color: var(--muted);
+  position: sticky;
+  left: 0;
+  background: var(--panel);
+}
+.cell {
+  flex: 0 0 30px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  cursor: pointer;
+}
+.cell.beat { border-color: #55483a; }
+.cell.on { background: var(--accent); border-color: transparent; }
+.cell.accent { background: var(--accent2); border-color: transparent; }
+.cell.soft { background: #7a4a33; border-color: transparent; }
+.cell.now { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+.rec-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 10px 0; }
+
+.keys { display: flex; gap: 5px; overflow-x: auto; padding: 6px 2px 10px; }
+.key {
+  flex: 0 0 56px;
+  height: 120px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: linear-gradient(#352c22, #2a231b);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 8px;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+.key .deg { font-weight: 600; }
+.key .freq { font-size: 11px; color: var(--muted); }
+.key.tonic { border-color: var(--accent2); }
+.key.active { background: linear-gradient(#7a4a33, #5e3826); }
+
+.export-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+
+footer { max-width: 1060px; margin: 24px auto 0; padding: 0 16px; color: var(--muted); font-size: 14px; }
+footer summary { cursor: pointer; }
+
+@media (max-width: 640px) {
+  .logo { height: 34px; }
+  .cell { flex-basis: 26px; height: 30px; }
+  .key { flex-basis: 48px; height: 104px; }
+  .vol { margin-left: 0; }
+}
