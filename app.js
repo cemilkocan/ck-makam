@@ -253,7 +253,7 @@ const THEMES = { toprak: "Toprak", gece: "Gece", orman: "Orman", gul: "Gül", ko
 const state = {
   bpm: 100, usul: "Maqsum (4/4)", bars: 2, swing: 0,
   grid: {}, notes: [], muted: new Set(),
-  voice: null, voiceOffset: 0, volVoice: 1.0, reverb: 0, echo: 0,
+  voice: null, voiceOffsetQ: 0, volVoice: 1.0, reverb: 0, echo: 0,
   playing: false, recording: false,
   makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal",
   volDrums: 0.9, volBaglama: 0.9
@@ -274,6 +274,11 @@ const usulDef = () => USULS[state.usul];
 const totalSteps = () => usulDef().steps * state.bars;
 const stepDur = () => usulDef().quarters * 60 / state.bpm / usulDef().steps;
 const loopDur = () => stepDur() * totalSteps();
+// Notes live in musical time (quarter notes) so changing the tempo moves them with it.
+const loopQ = () => usulDef().quarters * state.bars;
+const stepQ = () => usulDef().quarters / usulDef().steps;
+const qToSec = q => q * 60 / state.bpm;
+const secToQ = sec => sec * state.bpm / 60;
 const swingShift = i => (i % 2 === 1 ? state.swing * stepDur() * 0.5 : 0);
 
 const WHITE_PCS = [0, 2, 4, 5, 7, 9, 11];
@@ -425,11 +430,25 @@ function playVoice(ac, g, time) {
   const src = ac.createBufferSource();
   src.buffer = state.voice;
   src.connect(g.voiceIn);
-  src.start(Math.max(time + state.voiceOffset, ac.currentTime), 0);
+  src.start(Math.max(time + qToSec(state.voiceOffsetQ), ac.currentTime), 0);
   if (ac === ctx) {
     voiceSources.push(src);
     src.onended = () => { voiceSources = voiceSources.filter(s => s !== src); };
   }
+}
+
+let liveSources = [];
+
+function track(ac, src) {
+  if (ac !== ctx) return;
+  liveSources.push(src);
+  src.onended = () => { liveSources = liveSources.filter(s => s !== src); };
+}
+
+function stopAllSources() {
+  for (const s of liveSources) { try { s.stop(); } catch (e) {} }
+  liveSources = [];
+  voiceSources = [];
 }
 
 function playDrum(ac, g, rowId, time, vel) {
@@ -441,6 +460,7 @@ function playDrum(ac, g, rowId, time, vel) {
   gain.gain.value = vel;
   src.connect(gain).connect(g.drums);
   src.start(Math.max(time, ac.currentTime));
+  track(ac, src);
 }
 
 function playNote(ac, g, freq, time, vel = 0.9) {
@@ -454,6 +474,7 @@ function playNote(ac, g, freq, time, vel = 0.9) {
   gain.gain.value = vel;
   src.connect(gain).connect(g.bagIn);
   src.start(Math.max(time, ac.currentTime));
+  track(ac, src);
 }
 
 const VELS = [0, 0.8, 1.0, 0.5];
@@ -489,10 +510,19 @@ function movePlayhead() {
   if (state.playing) rafId = requestAnimationFrame(movePlayhead);
 }
 
+// Re-anchor the running loop after a change that moves every later event.
+function resyncTransport() {
+  if (!state.playing) return;
+  stopAllSources();
+  stepCursor = 0;
+  scheduledLoop = -1;
+  nextStepTime = loopStartTime = ctx.currentTime + 0.06;
+}
+
 function stopPlayback() {
   clearInterval(schedTimer); schedTimer = null;
   cancelAnimationFrame(rafId);
-  stopVoiceSources();
+  stopAllSources();
   state.playing = false;
   if (state.recording) toggleRec(false);
   $("play").classList.remove("playing");
@@ -510,10 +540,15 @@ function schedule() {
       loopStartTime = nextStepTime;
       if (scheduledLoop < loopIdx) {
         scheduledLoop = loopIdx;
-        for (const n of state.notes) playNote(ctx, nodes, n.f, nextStepTime + n.t, n.vel);
         playVoice(ctx, nodes, nextStepTime);
       }
     }
+    // notes land in the step they belong to, so a tempo change takes effect at once
+    const fromQ = local * stepQ(), toQ = fromQ + stepQ();
+    for (const n of state.notes)
+      if (n.q >= fromQ - 1e-9 && n.q < toQ - 1e-9)
+        playNote(ctx, nodes, n.f, nextStepTime + qToSec(n.q - fromQ), n.vel);
+
     const at = nextStepTime + swingShift(local);
     for (const row of DRUM_ROWS) {
       if (state.muted.has(row)) continue;
@@ -663,8 +698,8 @@ function laneAtY(y) {
 
 function placeNote(el, n) {
   const i = rollIndexForMidi(n.midi);
-  el.style.left = (n.t / loopDur()) * timeW() + "px";
-  el.style.width = Math.max(7, (n.len / loopDur()) * timeW() - 1) + "px";
+  el.style.left = (n.q / loopQ()) * timeW() + "px";
+  el.style.width = Math.max(7, (n.lenQ / loopQ()) * timeW() - 1) + "px";
   el.style.top = laneOf(i) * LANE_H() + 1 + "px";
   el.style.height = LANE_H() - 2 + "px";
 }
@@ -724,7 +759,8 @@ function renderRoll() {
       for (const k of keys) { const d = Math.abs(Math.log2(n.f / keyFreq(k))); if (d < bd) { bd = d; best = k; } }
       n.midi = best.midi;
     }
-    if (n.len === undefined) n.len = stepDur();
+    if (n.q === undefined) n.q = secToQ(n.t || 0);
+    if (n.lenQ === undefined) n.lenQ = n.len !== undefined ? secToQ(n.len) : stepQ();
     const el = document.createElement("div");
     el.className = "note";
     placeNote(el, n);
@@ -749,10 +785,10 @@ function renderRoll() {
     const i = laneAtY(e.clientY - r.top);
     if (i === null) return;
     const k = rollKeys[i];
-    let time = (e.clientX - r.left) / timeW() * loopDur();
-    if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
-    time = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
-    state.notes.push({ t: time, f: keyFreq(k), midi: k.midi, vel: 0.9, len: stepDur() });
+    let q = (e.clientX - r.left) / timeW() * loopQ();
+    if ($("quantize").checked) q = Math.round(q / stepQ()) * stepQ();
+    q = Math.max(0, Math.min(q, loopQ() - stepQ() / 2));
+    state.notes.push({ q, f: keyFreq(k), midi: k.midi, vel: 0.9, lenQ: stepQ() });
     updateNoteCount();
     renderRoll();
     await initAudio();
@@ -764,14 +800,14 @@ function startDrag(e, n, el) {
   e.preventDefault();
   e.stopPropagation();
   const area = $("rollarea"), r = area.getBoundingClientRect();
-  const grabX = e.clientX - r.left - (n.t / loopDur()) * timeW();
+  const grabX = e.clientX - r.left - (n.q / loopQ()) * timeW();
   el.setPointerCapture(e.pointerId);
   el.classList.add("dragging");
 
   const move = ev => {
-    let time = (ev.clientX - r.left - grabX) / timeW() * loopDur();
-    if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
-    n.t = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
+    let q = (ev.clientX - r.left - grabX) / timeW() * loopQ();
+    if ($("quantize").checked) q = Math.round(q / stepQ()) * stepQ();
+    n.q = Math.max(0, Math.min(q, loopQ() - stepQ() / 2));
     const i = laneAtY(ev.clientY - r.top);
     if (i !== null) { n.midi = rollKeys[i].midi; n.f = keyFreq(rollKeys[i]); }
     placeNote(el, n);
@@ -850,14 +886,12 @@ async function hitKey(i, vel = 0.9) {
 }
 
 function recordNote(k, vel) {
-  let time = (ctx.currentTime - loopStartTime) % loopDur();
-  if (time < 0) time += loopDur();
+  let q = secToQ(((ctx.currentTime - loopStartTime) % loopDur() + loopDur()) % loopDur());
   if ($("quantize").checked) {
-    const q = stepDur();
-    time = Math.round(time / q) * q;
-    if (time >= loopDur()) time = 0;
+    q = Math.round(q / stepQ()) * stepQ();
+    if (q >= loopQ()) q = 0;
   }
-  state.notes.push({ t: time, f: keyFreq(k), midi: k.midi, vel, len: stepDur() });
+  state.notes.push({ q, f: keyFreq(k), midi: k.midi, vel, lenQ: stepQ() });
   updateNoteCount();
   renderRoll();
 }
@@ -980,12 +1014,12 @@ async function renderOffline(repeats, parts) {
           if (v) playDrum(oc, g, row, base + i * sd + swingShift(i), humanVel(VELS[v]));
         }
     if (parts.baglama)
-      for (const n of state.notes) playNote(oc, g, n.f, base + n.t, n.vel);
+      for (const n of state.notes) playNote(oc, g, n.f, base + qToSec(n.q), n.vel);
     if (parts.voice && state.voice) {
       const src = oc.createBufferSource();
       src.buffer = state.voice;
       src.connect(g.voiceIn);
-      src.start(Math.max(0, base + state.voiceOffset));
+      src.start(Math.max(0, base + qToSec(state.voiceOffsetQ)));
     }
   }
   return oc.startRendering();
@@ -1112,7 +1146,7 @@ async function doExport(kind) {
 
 /* ---------- microphone layer ---------- */
 
-let micRecorder = null, micStream = null, voiceBase = 0;
+let micRecorder = null, micStream = null, voiceBaseQ = 0;
 
 async function toggleMic() {
   const btn = $("micBtn"), st = $("micStatus");
@@ -1128,7 +1162,7 @@ async function toggleMic() {
     return;
   }
   await initAudio();
-  const startAt = state.playing ? ((ctx.currentTime - loopStartTime) % loopDur() + loopDur()) % loopDur() : 0;
+  const startAtQ = state.playing ? secToQ(((ctx.currentTime - loopStartTime) % loopDur() + loopDur()) % loopDur()) : 0;
   const chunks = [];
   micRecorder = new MediaRecorder(micStream);
   micRecorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
@@ -1140,8 +1174,8 @@ async function toggleMic() {
       const buf = await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
       state.voice = buf;
       // line the take up with the point in the loop where recording began
-      voiceBase = startAt;
-      state.voiceOffset = startAt;
+      voiceBaseQ = startAtQ;
+      state.voiceOffsetQ = startAtQ;
       $("micOffset").value = 0;
       $("micClear").hidden = false;
       $("micOffset").parentElement.hidden = false;
@@ -1161,8 +1195,8 @@ async function toggleMic() {
 function clearVoice() {
   stopVoiceSources();
   state.voice = null;
-  state.voiceOffset = 0;
-  voiceBase = 0;
+  state.voiceOffsetQ = 0;
+  voiceBaseQ = 0;
   $("micOffset").value = 0;
   $("micClear").hidden = true;
   $("micOffset").parentElement.hidden = true;
@@ -1246,8 +1280,7 @@ function loadDemo(id) {
       const dist = Math.abs(Math.log2(f / k.freq));
       if (dist < bd) { bd = dist; best = k; }
     }
-    return { t: q * 60 / d.bpm, f, midi: best.midi, vel: 0.9,
-             len: Math.max(0.08, len * 60 / d.bpm) };
+    return { q, f, midi: best.midi, vel: 0.9, lenQ: Math.max(0.05, len) };
   });
   syncControls();
   $("exportStatus").textContent = t("demoLoaded");
@@ -1367,13 +1400,13 @@ function encodeState() {
       b.push(v);
     }
   const notes = state.notes.slice(0, 255);
-  const tick = loopDur() / (steps * 4);
+  const tick = stepQ() / 4;
   b.push(notes.length);
   for (const n of notes) {
-    const ti = Math.round(n.t / tick);
+    const ti = Math.round(n.q / tick);
     b.push(ti & 255, (ti >> 8) & 255, n.midi & 127,
       Math.round(Math.min(1, n.vel || 0.9) * 127),
-      Math.max(1, Math.min(255, Math.round((n.len || tick * 4) / tick))));
+      Math.max(1, Math.min(255, Math.round((n.lenQ || stepQ()) / tick))));
   }
   return bytesToUrl(Uint8Array.from(b));
 }
@@ -1406,14 +1439,14 @@ function decodeState(str) {
       }
     }
   const count = b[p++];
-  const tick = loopDur() / (totalSteps() * 4);
+  const tick = stepQ() / 4;
   buildKeys();
   state.notes = [];
   for (let i = 0; i < count; i++) {
     const ti = b[p] | (b[p + 1] << 8); p += 2;
     const midi = b[p++], vel = b[p++] / 127, len = b[p++];
     const k = keys.find(x => x.midi === midi) || keys[0];
-    state.notes.push({ t: ti * tick, midi, vel, len: len * tick, f: keyFreq(k) });
+    state.notes.push({ q: ti * tick, midi, vel, lenQ: len * tick, f: keyFreq(k) });
   }
 }
 
@@ -1611,8 +1644,8 @@ function drawVideoFrame(cx, W, H, pos, env) {
     if (idx < 0) continue;
     const li = lanes - 1 - idx;
     for (const off of [-1, 0, 1]) {
-      const x = playX + (n.t + off * loopDur() - pos) * pps;
-      const w = Math.max(7, (n.len || stepDur()) * pps - 2);
+      const x = playX + (qToSec(n.q) + off * loopDur() - pos) * pps;
+      const w = Math.max(7, qToSec(n.lenQ || stepQ()) * pps - 2);
       if (x > ix + iw || x + w < ix) continue;
       const live = x <= playX && x + w >= playX;
       cx.fillStyle = live ? col.accent2 : col.accent;
@@ -1651,7 +1684,7 @@ function drawVideoFrame(cx, W, H, pos, env) {
   // voice band, so the viewer can see the person's own take arrive
   if (env && state.voice) {
     const vy = dy + used.length * (padH + gap) + 26, vh = 72;
-    const vp = pos - state.voiceOffset;
+    const vp = pos - qToSec(state.voiceOffsetQ);
     const dur = state.voice.duration;
     const inside = vp >= 0 && vp <= dur;
     const level = inside ? env[Math.min(env.length - 1, Math.floor(vp / dur * env.length))] : 0;
@@ -1747,6 +1780,7 @@ function saveProject() {
     v: 1, bpm: state.bpm, usul: state.usul, bars: state.bars, swing: state.swing,
     makam: state.makam, tonic: state.tonic, smart: state.smart, strings: state.strings,
     notes: state.notes, muted: [...state.muted],
+    voiceOffsetQ: state.voiceOffsetQ,
     grid: Object.fromEntries(DRUM_ROWS.map(r => [r, Array.from(state.grid[r])]))
   };
   download(new Blob([JSON.stringify(data)], { type: "application/json" }),
@@ -1767,7 +1801,13 @@ function loadProject(file) {
       state.tonic = d.tonic || 220;
       state.smart = !!d.smart;
       state.strings = d.strings || "metal";
-      state.notes = Array.isArray(d.notes) ? d.notes : [];
+      state.notes = (Array.isArray(d.notes) ? d.notes : []).map(n => ({
+        q: n.q !== undefined ? n.q : secToQ(n.t || 0),
+        lenQ: n.lenQ !== undefined ? n.lenQ : (n.len !== undefined ? secToQ(n.len) : stepQ()),
+        f: n.f, midi: n.midi, vel: n.vel
+      }));
+      state.voiceOffsetQ = d.voiceOffsetQ || 0;
+      voiceBaseQ = state.voiceOffsetQ;
       state.muted = new Set(d.muted || []);
       initGrid(false);
       for (const r of DRUM_ROWS)
@@ -1921,7 +1961,9 @@ function renderLegend() {
 
 function setCollapsed(on) {
   $("drumBody").hidden = on;
-  $("collapseBtn").textContent = on ? t("expand") : t("collapse");
+  $("collapseBtn").textContent = on ? "\u25B8" : "\u25BE";
+  $("collapseBtn").title = on ? t("expand") : t("collapse");
+  $("collapseBtn").setAttribute("aria-label", on ? t("expand") : t("collapse"));
   $("collapseBtn").setAttribute("aria-expanded", String(!on));
   try { localStorage.setItem("ckm_drums", on ? "hidden" : "shown"); } catch (e) {}
 }
@@ -1929,7 +1971,9 @@ function setCollapsed(on) {
 // The wheel is a side topic, so it stays folded away until someone asks for it.
 function setWheel(on) {
   $("wheelBody").hidden = !on;
-  $("wheelToggle").textContent = on ? t("collapse") : t("expand");
+  $("wheelToggle").textContent = on ? "\u25BE" : "\u25B8";
+  $("wheelToggle").title = on ? t("collapse") : t("expand");
+  $("wheelToggle").setAttribute("aria-label", on ? t("collapse") : t("expand"));
   $("wheelToggle").setAttribute("aria-expanded", String(on));
   try { localStorage.setItem("ckm_wheel", on ? "shown" : "hidden"); } catch (e) {}
   if (on) renderWheel();
@@ -1996,10 +2040,14 @@ function init() {
   $("bpm").addEventListener("input", e => {
     state.bpm = Math.min(180, Math.max(60, +e.target.value || 100));
     $("bpmRange").value = state.bpm;
+    if (nodes) nodes.delay.delayTime.value = Math.min(1.2, stepDur() * 2);
+    resyncTransport();
   });
   $("bpmRange").addEventListener("input", e => {
     state.bpm = +e.target.value;
     $("bpm").value = state.bpm;
+    if (nodes) nodes.delay.delayTime.value = Math.min(1.2, stepDur() * 2);
+    resyncTransport();
   });
   $("swing").addEventListener("input", e => { state.swing = +e.target.value; });
   $("lang").addEventListener("click", () => {
@@ -2088,7 +2136,7 @@ function init() {
   $("demoSel").addEventListener("change", e => { loadDemo(e.target.value); blur(e); });
   $("micBtn").addEventListener("click", toggleMic);
   $("micClear").addEventListener("click", clearVoice);
-  $("micOffset").addEventListener("input", e => { state.voiceOffset = voiceBase + +e.target.value; });
+  $("micOffset").addEventListener("input", e => { state.voiceOffsetQ = voiceBaseQ + secToQ(+e.target.value); });
   $("volVoice").addEventListener("input", e => {
     state.volVoice = +e.target.value;
     if (nodes) nodes.voiceOut.gain.value = state.volVoice;

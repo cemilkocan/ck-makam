@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
 <header class="top">
@@ -34,8 +34,8 @@
 <main>
   <section class="panel">
     <div class="panel-head">
+      <button id="collapseBtn" class="arrow" aria-expanded="true">&#9662;</button>
       <h2>Darbuka</h2>
-      <button id="collapseBtn" class="ghost small" aria-expanded="true" data-i18n="collapse">Gizle</button>
       <label><span data-i18n="usul">Usul</span> <select id="usul"></select></label>
       <button id="usulHelp" class="help" aria-label="?">?</button>
       <label><span data-i18n="bars">Ölçü</span> <select id="bars"><option>1</option><option selected>2</option><option>4</option></select></label>
@@ -109,8 +109,8 @@
 
   <section class="panel">
     <div class="panel-head">
+      <button id="wheelToggle" class="arrow" aria-expanded="false">&#9656;</button>
       <h2 data-i18n="wheel">Camelot tekerleği</h2>
-      <button id="wheelToggle" class="ghost small" aria-expanded="false" data-i18n="expand">Göster</button>
       <button id="wheelHelp" class="help" aria-label="?">?</button>
     </div>
     <div id="wheelBody" hidden>
@@ -182,7 +182,7 @@
   </div>
 </div>
 
-<script src="demos.js?v=2"></script>
-<script src="app.js?v=16"></script>
+<script src="demos.js?v=3"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
