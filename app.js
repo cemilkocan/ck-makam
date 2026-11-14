@@ -41,8 +41,9 @@ const CAMELOT_B = { B: 1, "F#": 2, "C#": 3, "G#": 4, "D#": 5, "A#": 6, F: 7, C: 
 const A_ROOT = Object.fromEntries(Object.entries(CAMELOT_A).map(([k, v]) => [v, k]));
 const B_ROOT = Object.fromEntries(Object.entries(CAMELOT_B).map(([k, v]) => [v, k]));
 
-const DRUM_ROWS = ["doum", "tek", "tekhi", "mid", "mute",
-                   "davul_dum", "davul_tek", "bendir", "zil", "tef", "snare", "clap"];
+const DRUM_ROWS = ["doum", "tek", "tekhi", "slap", "mid", "mute",
+                   "davul_dum", "davul_tek", "kudum_dum", "kudum_tek",
+                   "bendir", "zil", "tef", "kasik", "snare", "clap"];
 
 // Usul presets. steps = cells per bar, quarters = bar length in quarter notes,
 // groups = cells per beat. Patterns: X strong, x normal, o soft, . off.
@@ -70,7 +71,8 @@ const SOUND_FILES = (() => {
   const m = {};
   for (const k of Object.keys(BAGLAMA_F0)) m["bag_" + k] = "sounds/baglama/" + k + ".mp3";
   for (const s of ["doum", "tek", "tekhi", "mid", "mute"]) m[s] = "sounds/darbuka/" + s + ".wav";
-  for (const s of ["davul_dum", "davul_tek", "bendir", "zil", "tef", "snare", "clap"])
+  for (const s of ["davul_dum", "davul_tek", "kudum_dum", "kudum_tek", "bendir",
+                   "zil", "tef", "kasik", "slap", "snare", "clap"])
     m[s] = "sounds/drums/" + s + ".wav";
   return m;
 })();
@@ -106,9 +108,10 @@ const I18N = {
     tagline: "Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.",
     noteNames: ["Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"],
     moods: { happy: "neşeli", sad: "hüzünlü", calm: "sakin" },
-    drums: { doum: "Düm", tek: "Tek", tekhi: "Tek tiz", mid: "Orta", mute: "Ka",
-      davul_dum: "Davul düm", davul_tek: "Davul çubuk", bendir: "Bendir",
-      zil: "Zil", tef: "Tef", snare: "Trampet", clap: "Alkış" },
+    drums: { doum: "Düm", tek: "Tek", tekhi: "Tek tiz", slap: "Slap", mid: "Orta", mute: "Ka",
+      davul_dum: "Davul düm", davul_tek: "Davul çubuk",
+      kudum_dum: "Kudüm düm", kudum_tek: "Kudüm tek", bendir: "Bendir",
+      zil: "Zil", tef: "Tef", kasik: "Kaşık", snare: "Trampet", clap: "Alkış" },
     usulInfo: {
       "Maqsum (4/4)": "Arap ve Türk popunun en çok duyulan ritmi. Düm tek tek, düm tek. Oynak ve tanıdık.",
       "Ayyub (2/4)": "Hızlı dönen iki zamanlı kalıp. Göbek dansında ve sufi müziğinde duyarsın.",
@@ -136,7 +139,7 @@ const I18N = {
     },
     wheelNote: "Dikkat: Camelot, Batı'nın 12 eşit aralıklı sistemine göre kuruludur. Makamın koma perdeleriyle matematiği farklıdır, bu tekerlek komalı geçişleri birebir karşılamaz. Yaklaşık bir pusula olarak kullan.",
     bpmLbl: "BPM",
-    inst: "Çalgı", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
+    rhythm: "Ritim", inst: "Çalgı", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
     upload: "Müzik yükle", toNotes: "Notaya çevir", analysing: "Melodi çözülüyor...",
     notesFound: "nota çıkarıldı", noMelody: "Tek sesli bir melodi bulunamadı. Mırıldanma ya da tek çalgı kaydı en iyi sonucu verir.",
     fileLoaded: "Dosya yüklendi,", fileBad: "Bu dosya okunamadı.",
@@ -209,9 +212,10 @@ const I18N = {
     tagline: "Free. Everything runs in your browser, nothing is uploaded.",
     noteNames: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
     moods: { happy: "bright", sad: "melancholic", calm: "calm" },
-    drums: { doum: "Dum", tek: "Tek", tekhi: "Tek hi", mid: "Mid", mute: "Ka",
-      davul_dum: "Davul low", davul_tek: "Davul stick", bendir: "Bendir",
-      zil: "Zil", tef: "Tef", snare: "Snare", clap: "Clap" },
+    drums: { doum: "Dum", tek: "Tek", tekhi: "Tek hi", slap: "Slap", mid: "Mid", mute: "Ka",
+      davul_dum: "Davul low", davul_tek: "Davul stick",
+      kudum_dum: "Kudüm low", kudum_tek: "Kudüm high", bendir: "Bendir",
+      zil: "Zil", tef: "Tef", kasik: "Spoons", snare: "Snare", clap: "Clap" },
     usulInfo: {
       "Maqsum (4/4)": "The most common rhythm in Arabic and Turkish pop. Dum tek tek, dum tek. Bouncy and familiar.",
       "Ayyub (2/4)": "A fast turning two-beat pattern, heard in belly dance and sufi music.",
@@ -239,7 +243,7 @@ const I18N = {
     },
     wheelNote: "Note: Camelot is built on the West's 12 equal divisions. Makam comma pitches follow different arithmetic, so this wheel does not map comma-based transitions one to one. Use it as a rough compass.",
     bpmLbl: "BPM",
-    inst: "Instrument", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
+    rhythm: "Rhythm", inst: "Instrument", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
     upload: "Load audio", toNotes: "Find the melody", analysing: "Reading the melody...",
     notesFound: "notes found", noMelody: "No single-voice melody found. Humming or one instrument works best.",
     fileLoaded: "File loaded,", fileBad: "That file could not be read.",
@@ -1070,6 +1074,15 @@ function updateNoteCount() {
 function toggleRec(force) {
   state.recording = force !== undefined ? force : !state.recording;
   $("rec").classList.toggle("armed", state.recording);
+  const inst = $("instSel");
+  inst.innerHTML = "";
+  for (const v of ["baglama", "kanun", "ney"]) {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = t(v);
+    if (v === state.inst) o.selected = true;
+    inst.appendChild(o);
+  }
+  $("instTitle").textContent = t(state.inst);
   $("rec").textContent = state.recording ? t("recording") : t("record");
 }
 
@@ -2288,6 +2301,15 @@ function applyLang() {
     if (v === state.strings) o.selected = true;
     s.appendChild(o);
   }
+  const inst = $("instSel");
+  inst.innerHTML = "";
+  for (const v of ["baglama", "kanun", "ney"]) {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = t(v);
+    if (v === state.inst) o.selected = true;
+    inst.appendChild(o);
+  }
+  $("instTitle").textContent = t(state.inst);
   $("rec").textContent = state.recording ? t("recording") : t("record");
   for (const k of ["learnKomaT", "learnCamelotT", "learnKoma", "learnCamelot"])
     $(k).textContent = t(k);
