@@ -424,22 +424,25 @@ function bufferToWav(buf) {
   return new Uint8Array(ab);
 }
 
-function bufferToMp3(buf) {
-  const enc = new lamejs.Mp3Encoder(2, 48000, 320);
-  const L = buf.getChannelData(0), R = buf.getChannelData(1);
-  const li = new Int16Array(L.length), ri = new Int16Array(R.length);
-  for (let i = 0; i < L.length; i++) {
-    li[i] = Math.max(-1, Math.min(1, L[i])) * 32767;
-    ri[i] = Math.max(-1, Math.min(1, R[i])) * 32767;
-  }
-  const out = [], block = 1152;
-  for (let i = 0; i < li.length; i += block) {
-    const d = enc.encodeBuffer(li.subarray(i, i + block), ri.subarray(i, i + block));
-    if (d.length) out.push(new Uint8Array(d));
-  }
-  const end = enc.flush();
-  if (end.length) out.push(new Uint8Array(end));
-  return new Blob(out, { type: "audio/mpeg" });
+function encodeMp3(buf) {
+  // Runs in a Web Worker so the page does not freeze while encoding.
+  return new Promise((resolve, reject) => {
+    const w = new Worker("export-worker.js");
+    const l = new Float32Array(buf.getChannelData(0));
+    const r = new Float32Array(buf.getChannelData(1));
+    w.onmessage = e => {
+      e.data.error ? reject(new Error(e.data.error))
+                   : resolve(new Blob(e.data.chunks, { type: "audio/mpeg" }));
+      w.terminate();
+    };
+    w.onerror = e => { reject(new Error(e.message || "Worker error")); w.terminate(); };
+    w.postMessage({ l, r }, [l.buffer, r.buffer]);
+  });
+}
+
+function stamp() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes());
 }
 
 /* minimal ZIP writer (stored, no compression) */
@@ -515,11 +518,11 @@ async function doExport(kind) {
         ["darbuka.wav", bufferToWav(drums)],
         ["baglama.wav", bufferToWav(bag)]
       ]);
-      download(zip, "ck-makam-stems.zip");
+      download(zip, "ck-makam-stems-" + stamp() + ".zip");
     } else {
       const mix = await renderOffline(repeats, { drums: true, baglama: true });
-      if (kind === "wav") download(new Blob([bufferToWav(mix)], { type: "audio/wav" }), "ck-makam.wav");
-      else { status.textContent = "Encoding MP3..."; download(bufferToMp3(mix), "ck-makam.mp3"); }
+      if (kind === "wav") download(new Blob([bufferToWav(mix)], { type: "audio/wav" }), "ck-makam-" + stamp() + ".wav");
+      else { status.textContent = "Encoding MP3..."; download(await encodeMp3(mix), "ck-makam-" + stamp() + ".mp3"); }
     }
     status.textContent = "Done.";
   } catch (err) {
