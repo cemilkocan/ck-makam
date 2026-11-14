@@ -1210,11 +1210,18 @@ function fillDemos() {
   first.value = "";
   first.textContent = t("demoPick");
   sel.appendChild(first);
-  for (const d of (window.DEMOS || [])) {
-    const o = document.createElement("option");
-    o.value = d.id;
-    o.textContent = d[lang] || d.tr;
-    sel.appendChild(o);
+  const groups = {};
+  for (const d of (window.DEMOS || [])) (groups[d.makam] = groups[d.makam] || []).push(d);
+  for (const [makam, list] of Object.entries(groups)) {
+    const g = document.createElement("optgroup");
+    g.label = makam;
+    for (const d of list) {
+      const o = document.createElement("option");
+      o.value = d.id;
+      o.textContent = d[lang] || d.tr;
+      g.appendChild(o);
+    }
+    sel.appendChild(g);
   }
 }
 
@@ -1467,73 +1474,213 @@ function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-function drawVideoFrame(cx, W, H, pos) {
-  const col = {
-    bg: cssVar("--bg"), panel: cssVar("--panel2"), ink: cssVar("--ink"),
-    muted: cssVar("--muted"), accent: cssVar("--accent"), accent2: cssVar("--accent2"),
-    line: cssVar("--line")
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    const rr = Math.min(typeof r === "number" ? r : 0, w / 2, h / 2);
+    this.moveTo(x + rr, y);
+    this.arcTo(x + w, y, x + w, y + h, rr);
+    this.arcTo(x + w, y + h, x, y + h, rr);
+    this.arcTo(x, y + h, x, y, rr);
+    this.arcTo(x, y, x + w, y, rr);
+    this.closePath();
+    return this;
   };
-  cx.fillStyle = col.bg;
+}
+
+function voiceEnvelope(buf, n) {
+  const d = buf.getChannelData(0), out = new Float32Array(n);
+  const step = Math.max(1, Math.floor(d.length / n));
+  for (let i = 0; i < n; i++) {
+    let m = 0;
+    for (let j = 0; j < step; j++) {
+      const v = Math.abs(d[i * step + j] || 0);
+      if (v > m) m = v;
+    }
+    out[i] = m;
+  }
+  return out;
+}
+
+function drawMicBadge(cx, x, y, r, level, col) {
+  cx.save();
+  cx.beginPath();
+  cx.arc(x, y, r + level * 10, 0, Math.PI * 2);
+  cx.fillStyle = col.accent;
+  cx.globalAlpha = 0.18 + level * 0.3;
+  cx.fill();
+  cx.globalAlpha = 1;
+  cx.beginPath();
+  cx.arc(x, y, r, 0, Math.PI * 2);
+  cx.fillStyle = level > 0.04 ? col.accent : col.panel;
+  cx.fill();
+  // mic capsule and stand
+  cx.fillStyle = level > 0.04 ? "#fff" : col.muted;
+  const cw = r * 0.42, ch = r * 0.66;
+  cx.beginPath();
+  cx.roundRect(x - cw / 2, y - ch * 0.75, cw, ch, cw / 2);
+  cx.fill();
+  cx.strokeStyle = cx.fillStyle;
+  cx.lineWidth = r * 0.11;
+  cx.beginPath();
+  cx.arc(x, y - ch * 0.1, cw * 0.86, 0.15 * Math.PI, 0.85 * Math.PI);
+  cx.stroke();
+  cx.beginPath();
+  cx.moveTo(x, y + ch * 0.62);
+  cx.lineTo(x, y + ch * 0.86);
+  cx.stroke();
+  cx.restore();
+}
+
+// Instagram and TikTok cover the edges of a 9:16 frame with their own interface,
+// so everything that matters is laid out inside this box.
+const SAFE = { l: 56, r: 150, t: 170, b: 290 };
+const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+
+function drawVideoFrame(cx, W, H, pos, env) {
+  const col = {
+    bg: cssVar("--bg"), bg2: cssVar("--bg2"), panel: cssVar("--panel"),
+    panel2: cssVar("--panel2"), panel3: cssVar("--panel3"), ink: cssVar("--ink"),
+    ink2: cssVar("--ink2"), muted: cssVar("--muted"), accent: cssVar("--accent"),
+    accent2: cssVar("--accent2"), soft: cssVar("--soft")
+  };
+  const X = SAFE.l, CW = W - SAFE.l - SAFE.r, CX = X + CW / 2;
+
+  // full-bleed background so the raw file never looks cropped
+  const g = cx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, col.bg2);
+  g.addColorStop(0.55, col.bg);
+  g.addColorStop(1, col.bg2);
+  cx.fillStyle = g;
   cx.fillRect(0, 0, W, H);
+  cx.save();
+  cx.globalAlpha = 0.05;
+  cx.fillStyle = col.accent;
+  cx.beginPath(); cx.arc(W * 0.82, H * 0.12, 260, 0, Math.PI * 2); cx.fill();
+  cx.beginPath(); cx.arc(W * 0.1, H * 0.9, 300, 0, Math.PI * 2); cx.fill();
+  cx.restore();
+
+  // header
+  cx.textAlign = "left";
+  cx.fillStyle = col.muted;
+  cx.font = "600 20px " + FONT;
+  cx.letterSpacing = "4px";
+  cx.fillText("CK MAKAM", X, SAFE.t);
+  cx.letterSpacing = "0px";
 
   cx.fillStyle = col.ink;
-  cx.font = "700 54px 'Segoe UI', system-ui, sans-serif";
-  cx.textAlign = "center";
-  cx.fillText("CK Makam", W / 2, 110);
-  cx.fillStyle = col.muted;
-  cx.font = "400 30px 'Segoe UI', system-ui, sans-serif";
-  cx.fillText(state.makam + "  ·  " + state.usul.replace(/\s*\(.*\)/, "") + "  ·  " + Math.round(state.bpm) + " BPM", W / 2, 160);
+  cx.font = "700 62px " + FONT;
+  cx.fillText(state.makam, X, SAFE.t + 72);
 
-  // piano roll strip, one loop wide, scrolling right to left past a fixed playhead
-  const rx = 40, rw = W - 80, ry = 230, rh = 620;
+  // usul and tempo as chips
+  let chipX = X;
+  const chip = (text, fill, textCol) => {
+    cx.font = "600 22px " + FONT;
+    const w = cx.measureText(text).width + 30;
+    cx.fillStyle = fill;
+    cx.beginPath();
+    cx.roundRect(chipX, SAFE.t + 96, w, 40, 20);
+    cx.fill();
+    cx.fillStyle = textCol;
+    cx.fillText(text, chipX + 15, SAFE.t + 123);
+    chipX += w + 10;
+  };
+  chip(state.usul.replace(/\s*\((.*)\)/, " $1"), col.panel3, col.ink2);
+  chip(Math.round(state.bpm) + " BPM", col.panel3, col.ink2);
+  if (state.voice) chip(t("voice"), col.accent, "#fff");
+
+  // piano roll card
+  const ry = SAFE.t + 170, rh = 350, pad = 14;
   cx.fillStyle = col.panel;
-  cx.fillRect(rx, ry, rw, rh);
-  const laneCount = keys.length, lh = rh / laneCount;
-  for (let i = 0; i < laneCount; i++) {
-    const k = keys[laneCount - 1 - i];
-    if (!k.white) { cx.fillStyle = "rgba(0,0,0,0.25)"; cx.fillRect(rx, ry + i * lh, rw, lh); }
-  }
-  const playX = rx + rw * 0.36, pps = rw / loopDur();
+  cx.beginPath(); cx.roundRect(X, ry, CW, rh, 22); cx.fill();
+  const iy = ry + pad, ih = rh - pad * 2, ix = X + pad, iw = CW - pad * 2;
   cx.save();
-  cx.beginPath(); cx.rect(rx, ry, rw, rh); cx.clip();
+  cx.beginPath(); cx.roundRect(ix, iy, iw, ih, 12); cx.clip();
+  cx.fillStyle = col.bg2;
+  cx.fillRect(ix, iy, iw, ih);
+
+  const lanes = rollKeys.length || keys.length;
+  const src = rollKeys.length ? rollKeys : keys;
+  const lh = ih / lanes;
+  for (let i = 0; i < lanes; i++) {
+    const k = src[lanes - 1 - i];
+    if (k && !k.white) { cx.fillStyle = "rgba(0,0,0,0.3)"; cx.fillRect(ix, iy + i * lh, iw, lh); }
+  }
+  const playX = ix + iw * 0.34, pps = iw / loopDur();
   for (const n of state.notes) {
-    const li = laneCount - 1 - keys.findIndex(k => k.midi === n.midi);
-    if (li < 0) continue;
+    const idx = src.findIndex(k => k.midi === n.midi);
+    if (idx < 0) continue;
+    const li = lanes - 1 - idx;
     for (const off of [-1, 0, 1]) {
       const x = playX + (n.t + off * loopDur() - pos) * pps;
-      const w = Math.max(6, (n.len || stepDur()) * pps);
-      if (x > rx + rw || x + w < rx) continue;
+      const w = Math.max(7, (n.len || stepDur()) * pps - 2);
+      if (x > ix + iw || x + w < ix) continue;
       const live = x <= playX && x + w >= playX;
       cx.fillStyle = live ? col.accent2 : col.accent;
-      cx.fillRect(x, ry + li * lh + 1, w, lh - 2);
+      cx.beginPath();
+      cx.roundRect(x, iy + li * lh + 1.5, w, Math.max(3, lh - 3), 3);
+      cx.fill();
     }
   }
-  cx.restore();
   cx.fillStyle = col.ink;
-  cx.fillRect(playX - 2, ry, 4, rh);
+  cx.globalAlpha = 0.9;
+  cx.fillRect(playX - 1.5, iy, 3, ih);
+  cx.restore();
 
-  // drum pads, lighting on the current step
+  // drum pads
   const steps = totalSteps(), cur = Math.floor(pos / stepDur()) % steps;
-  const used = DRUM_ROWS.filter(r => !state.muted.has(r) && state.grid[r].some(v => v));
-  const py = 910, padH = 54, gap = 12;
+  const used = DRUM_ROWS.filter(r => !state.muted.has(r) && state.grid[r].some(v => v)).slice(0, 4);
+  const dy = ry + rh + 34, padH = 30, gap = 11, labelW = 132;
   cx.textAlign = "left";
-  used.slice(0, 5).forEach((row, i) => {
-    const y = py + i * (padH + gap);
+  used.forEach((row, i) => {
+    const y = dy + i * (padH + gap);
     cx.fillStyle = col.muted;
-    cx.font = "400 24px 'Segoe UI', system-ui, sans-serif";
-    cx.fillText(I18N[lang].drums[row], rx, y + 36);
-    const bx = rx + 210, bw = W - rx - 210 - 40, cw = bw / steps;
+    cx.font = "600 19px " + FONT;
+    cx.fillText(I18N[lang].drums[row], X, y + 21);
+    const bx = X + labelW, bw = CW - labelW, cw = bw / steps;
     for (let s = 0; s < steps; s++) {
       const v = state.grid[row][s];
-      cx.fillStyle = !v ? col.panel : (s === cur ? col.ink : (v === 2 ? col.accent2 : v === 3 ? cssVar("--soft") : col.accent));
-      cx.fillRect(bx + s * cw + 1, y + 10, cw - 2, padH - 20);
+      cx.fillStyle = !v ? col.panel2
+        : s === cur ? col.ink
+        : v === 2 ? col.accent2 : v === 3 ? col.soft : col.accent;
+      cx.beginPath();
+      cx.roundRect(bx + s * cw + 1.5, y, cw - 3, padH, 5);
+      cx.fill();
     }
   });
 
-  cx.fillStyle = col.muted;
-  cx.font = "400 28px 'Segoe UI', system-ui, sans-serif";
-  cx.textAlign = "center";
-  cx.fillText("cemilkocan.github.io/ck-makam", W / 2, H - 60);
+  // voice band, so the viewer can see the person's own take arrive
+  if (env && state.voice) {
+    const vy = dy + used.length * (padH + gap) + 26, vh = 72;
+    const vp = pos - state.voiceOffset;
+    const dur = state.voice.duration;
+    const inside = vp >= 0 && vp <= dur;
+    const level = inside ? env[Math.min(env.length - 1, Math.floor(vp / dur * env.length))] : 0;
+
+    cx.fillStyle = col.panel;
+    cx.beginPath(); cx.roundRect(X, vy, CW, vh, 16); cx.fill();
+    drawMicBadge(cx, X + 42, vy + vh / 2, 23, level, col);
+
+    const wx = X + 84, ww = CW - 100, half = vh / 2;
+    for (let i = 0; i < env.length; i++) {
+      const x = wx + (i / env.length) * ww;
+      const h2 = Math.max(1.5, env[i] * (vh * 0.38));
+      const past = inside && (i / env.length) <= vp / dur;
+      cx.fillStyle = past ? col.accent2 : col.panel3;
+      cx.fillRect(x, vy + half - h2, Math.max(1.5, ww / env.length - 1), h2 * 2);
+    }
+    if (inside) {
+      cx.fillStyle = col.ink;
+      cx.fillRect(wx + (vp / dur) * ww, vy + 10, 2, vh - 20);
+    }
+  }
+
+  // footer lockup, still inside the safe box
+  const fy = H - SAFE.b;
+  cx.fillStyle = col.accent;
+  cx.beginPath(); cx.roundRect(X, fy - 20, 8, 28, 4); cx.fill();
+  cx.fillStyle = col.ink2;
+  cx.font = "600 24px " + FONT;
+  cx.fillText("cemilkocan.github.io/ck-makam", X + 22, fy);
 }
 
 async function exportVideo() {
@@ -1551,7 +1698,8 @@ async function exportVideo() {
   const canvas = document.createElement("canvas");
   canvas.width = 720; canvas.height = 1280;
   const cx = canvas.getContext("2d");
-  drawVideoFrame(cx, canvas.width, canvas.height, 0);
+  const env = state.voice ? voiceEnvelope(state.voice, 160) : null;
+  drawVideoFrame(cx, canvas.width, canvas.height, 0, env);
 
   const ac = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
   const dest = ac.createMediaStreamDestination();
@@ -1576,7 +1724,7 @@ async function exportVideo() {
     const tick = () => {
       const p = ac.currentTime - t0;
       if (p >= buf.duration - 0.25) { resolve(); return; }
-      drawVideoFrame(cx, canvas.width, canvas.height, Math.max(0, p) % loopDur());
+      drawVideoFrame(cx, canvas.width, canvas.height, Math.max(0, p) % loopDur(), env);
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -1778,6 +1926,15 @@ function setCollapsed(on) {
   try { localStorage.setItem("ckm_drums", on ? "hidden" : "shown"); } catch (e) {}
 }
 
+// The wheel is a side topic, so it stays folded away until someone asks for it.
+function setWheel(on) {
+  $("wheelBody").hidden = !on;
+  $("wheelToggle").textContent = on ? t("collapse") : t("expand");
+  $("wheelToggle").setAttribute("aria-expanded", String(on));
+  try { localStorage.setItem("ckm_wheel", on ? "shown" : "hidden"); } catch (e) {}
+  if (on) renderWheel();
+}
+
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
@@ -1798,6 +1955,7 @@ function applyLang() {
   $("tourPrev").textContent = t("tourPrev");
   setPlayIcon();
   setCollapsed($("drumBody").hidden);
+  setWheel(!$("wheelBody").hidden);
   fillMakams();
   fillDemos();
   renderLegend();
@@ -1820,9 +1978,13 @@ function init() {
 
   applyTheme();
   initGrid(true);
-  let collapsed = false;
-  try { collapsed = localStorage.getItem("ckm_drums") === "hidden"; } catch (e) {}
+  let collapsed = false, wheelOpen = false;
+  try {
+    collapsed = localStorage.getItem("ckm_drums") === "hidden";
+    wheelOpen = localStorage.getItem("ckm_wheel") === "shown";
+  } catch (e) {}
   $("drumBody").hidden = collapsed;
+  $("wheelBody").hidden = !wheelOpen;
   applyLang();
 
   const blur = e => e.target.blur();
@@ -1853,6 +2015,7 @@ function init() {
     blur(e);
   });
   $("collapseBtn").addEventListener("click", () => setCollapsed(!$("drumBody").hidden));
+  $("wheelToggle").addEventListener("click", () => setWheel($("wheelBody").hidden));
   $("usul").addEventListener("change", e => {
     if (state.playing) stopPlayback();
     state.usul = e.target.value;

@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 <header class="top">
@@ -110,8 +110,10 @@
   <section class="panel">
     <div class="panel-head">
       <h2 data-i18n="wheel">Camelot tekerleği</h2>
+      <button id="wheelToggle" class="ghost small" aria-expanded="false" data-i18n="expand">Göster</button>
       <button id="wheelHelp" class="help" aria-label="?">?</button>
     </div>
+    <div id="wheelBody" hidden>
     <div class="wheelrow">
       <svg id="wheel" viewBox="0 0 300 300" width="300" height="300" aria-label="Camelot"></svg>
       <div class="wheelinfo">
@@ -130,6 +132,7 @@
         <summary id="learnKomaT"></summary>
         <p id="learnKoma"></p>
       </details>
+    </div>
     </div>
   </section>
 
@@ -179,7 +182,7 @@
   </div>
 </div>
 
-<script src="demos.js?v=1"></script>
-<script src="app.js?v=15"></script>
+<script src="demos.js?v=2"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>
