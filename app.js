@@ -120,6 +120,7 @@ const I18N = {
       "Nihavend": "Romantik ve üzgün. Batı minörünün karşılığı."
     },
     wheelNote: "Dikkat: Camelot, Batı'nın 12 eşit aralıklı sistemine göre kuruludur. Makamın koma perdeleriyle matematiği farklıdır, bu tekerlek komalı geçişleri birebir karşılamaz. Yaklaşık bir pusula olarak kullan.",
+    bpmLbl: "BPM",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
     micOffset: "Kaydırma", micHint: "Mikrofona konuş ya da söyle, sesin loop'a katman olarak eklenir. Çal sırasında kaydedersen ritme oturur. Geç ya da erken düştüyse kaydırmayla hizala.",
@@ -202,6 +203,7 @@ const I18N = {
       "Nihavend": "Romantic and sad. The equivalent of the Western minor scale."
     },
     wheelNote: "Note: Camelot is built on the West's 12 equal divisions. Makam comma pitches follow different arithmetic, so this wheel does not map comma-based transitions one to one. Use it as a rough compass.",
+    bpmLbl: "BPM",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
     micOffset: "Nudge", micHint: "Speak or sing into the mic and your voice joins the loop as a layer. Record while it plays and it lands in time. If it sits late or early, nudge it into place.",
@@ -511,9 +513,28 @@ function renderGrid() {
   const beatStarts = new Set();
   let acc = 0;
   for (const g of u.groups) { beatStarts.add(acc); acc += g; }
+  // which beat each cell belongs to, so the bar can be read at a glance
+  const groupOf = [];
+  u.groups.forEach((g, gi) => { for (let k = 0; k < g; k++) groupOf.push(gi); });
 
   const grid = $("grid");
   grid.innerHTML = "";
+
+  const ruler = document.createElement("div");
+  ruler.className = "ruler";
+  const pad = document.createElement("div");
+  pad.className = "pad";
+  ruler.appendChild(pad);
+  for (let i = 0; i < totalSteps(); i++) {
+    const tick = document.createElement("div");
+    const local = i % u.steps;
+    tick.className = "tick" + (local === 0 ? " beat" : "");
+    tick.textContent = local === 0 ? String(Math.floor(i / u.steps) + 1)
+                     : beatStarts.has(local) ? String(groupOf[local] + 1) : "";
+    ruler.appendChild(tick);
+  }
+  grid.appendChild(ruler);
+
   for (const row of DRUM_ROWS) {
     const div = document.createElement("div");
     div.className = "row";
@@ -532,7 +553,7 @@ function renderGrid() {
     div.appendChild(lab);
     for (let i = 0; i < totalSteps(); i++) {
       const cell = document.createElement("button");
-      cell.className = "cell";
+      cell.className = "cell g" + (groupOf[i % u.steps] % 2);
       cell.dataset.step = i;
       if (beatStarts.has(i % u.steps)) cell.classList.add("beat");
       paintCell(cell, state.grid[row][i]);
