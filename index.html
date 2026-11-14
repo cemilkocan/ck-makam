@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="toprak">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CK Makam</title>
-<meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, loop ve MP3, WAV, stem indirme. Ücretsiz.">
+<meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <header class="top">
@@ -15,45 +15,61 @@
     <button id="play" class="big">Çal</button>
     <label class="tempo">BPM <input id="bpm" type="number" min="60" max="180" value="100"></label>
     <input id="bpmRange" type="range" min="60" max="180" value="100" aria-label="Tempo">
+    <label><span data-i18n="swing">Salınım</span> <input id="swing" type="range" min="0" max="0.6" step="0.01" value="0"></label>
+    <label><span data-i18n="theme">Tema</span> <select id="themeSel"></select></label>
     <button id="lang" class="ghost" title="Language">EN</button>
   </div>
 </header>
 
+<p class="rotate" data-i18n="rotate">Daha geniş çalışmak için telefonu yan çevir.</p>
+
 <main>
-  <section class="panel" id="drumPanel">
+  <section class="panel">
     <div class="panel-head">
       <h2>Darbuka</h2>
-      <label><span data-i18n="usul">Usul</span>
-        <select id="usul"></select>
-      </label>
+      <label><span data-i18n="usul">Usul</span> <select id="usul"></select></label>
+      <button id="usulHelp" class="help">?</button>
       <label><span data-i18n="bars">Ölçü</span> <select id="bars"><option>1</option><option selected>2</option><option>4</option></select></label>
       <button id="clearDrums" class="ghost" data-i18n="clear">Temizle</button>
       <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volDrums" min="0" max="1.2" step="0.01" value="0.9"></label>
     </div>
+    <p id="usulInfo" class="info"></p>
     <div id="legend" class="legend"></div>
     <div id="grid" class="grid"></div>
   </section>
 
-  <section class="panel" id="baglamaPanel">
+  <section class="panel">
     <div class="panel-head">
       <h2>Bağlama</h2>
       <label><span data-i18n="makam">Makam</span> <select id="makam"></select></label>
+      <button id="makamHelp" class="help">?</button>
       <label><span data-i18n="tonic">Karar</span> <select id="shift"></select></label>
       <label><span data-i18n="strings">Tel</span> <select id="strings"></select></label>
       <label><input type="checkbox" id="smart" checked> <span data-i18n="smart">Akıllı dizi</span></label>
+      <button id="smartHelp" class="help">?</button>
       <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volBaglama" min="0" max="1.2" step="0.01" value="0.9"></label>
     </div>
+    <p id="makamInfo" class="info"></p>
     <div class="rec-row">
       <button id="rec" class="rec" data-i18n="record">Kayıt</button>
       <label><input type="checkbox" id="quantize" checked> <span data-i18n="quantize">Gride yapış</span></label>
       <button id="undo" class="ghost" data-i18n="undo">Geri al</button>
       <button id="clearNotes" class="ghost" data-i18n="clear">Temizle</button>
       <span id="noteCount" class="muted"></span>
+      <button id="midiBtn" class="ghost" data-i18n="midi">MIDI bağla</button>
+      <span id="midiStatus" class="muted"></span>
     </div>
-    <div id="keys" class="keys"></div>
+    <p class="muted" data-i18n="rollHint"></p>
+    <div class="rollwrap">
+      <div id="rollInner" class="rollinner">
+        <div id="roll" class="roll"></div>
+        <div id="piano" class="piano"></div>
+      </div>
+    </div>
+    <p id="kbHint" class="muted kbhint"></p>
   </section>
 
-  <section class="panel" id="exportPanel">
+  <section class="panel">
     <div class="panel-head">
       <h2 data-i18n="export">İndir</h2>
       <label><span data-i18n="loops">Tekrar</span> <select id="repeats"><option>1</option><option>2</option><option selected>4</option><option>8</option></select></label>
@@ -62,6 +78,9 @@
       <button data-export="mp3">MP3 320</button>
       <button data-export="wav">WAV</button>
       <button data-export="stems">Stems (ZIP)</button>
+      <button id="saveBtn" class="ghost" data-i18n="save">Projeyi kaydet</button>
+      <button id="loadBtn" class="ghost" data-i18n="load">Proje aç</button>
+      <input type="file" id="loadFile" accept=".json" hidden>
       <span id="exportStatus" class="muted"></span>
     </div>
   </section>
@@ -76,6 +95,6 @@
   <p class="muted" data-i18n="tagline">Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.</p>
 </footer>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
