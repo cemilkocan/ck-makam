@@ -123,7 +123,8 @@ const I18N = {
     bpmLbl: "BPM",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
-    micOffset: "Kaydırma", micHint: "Mikrofona konuş ya da söyle, sesin loop'a katman olarak eklenir. Çal sırasında kaydedersen ritme oturur. Geç ya da erken düştüyse kaydırmayla hizala.",
+    micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko",
+    micHint: "Mikrofona konuş ya da söyle, sesin loop'a katman olarak eklenir. Çal sırasında kaydedersen ritme oturur. Geç ya da erken düştüyse kaydırmayla hizala. Hoparlör açıkken kaydedersen loop sesi de karışabilir, kulaklık takmak en temizi.",
     micDenied: "Mikrofon izni verilmedi.", micNo: "Bu tarayıcı mikrofon kaydını desteklemiyor.",
     micOn: "Kaydediyor, bitince düğmeye bas.", micSaved: "Ses eklendi.", voice: "Ses",
     wheel: "Camelot tekerleği", wheelNow: "Şu an", wheelFit: "Uyumlu",
@@ -206,7 +207,8 @@ const I18N = {
     bpmLbl: "BPM",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
-    micOffset: "Nudge", micHint: "Speak or sing into the mic and your voice joins the loop as a layer. Record while it plays and it lands in time. If it sits late or early, nudge it into place.",
+    micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo",
+    micHint: "Speak or sing into the mic and your voice joins the loop as a layer. Record while it plays and it lands in time. If it sits late or early, nudge it into place. Recording with the speakers on can bleed the loop into the take, so headphones are cleanest.",
     micDenied: "Microphone permission was refused.", micNo: "This browser cannot record from the microphone.",
     micOn: "Recording, press the button when you are done.", micSaved: "Voice added.", voice: "Voice",
     wheel: "Camelot wheel", wheelNow: "Now", wheelFit: "Mixes with",
@@ -251,7 +253,7 @@ const THEMES = { toprak: "Toprak", gece: "Gece", orman: "Orman", gul: "Gül", ko
 const state = {
   bpm: 100, usul: "Maqsum (4/4)", bars: 2, swing: 0,
   grid: {}, notes: [], muted: new Set(),
-  voice: null, voiceOffset: 0, volVoice: 1.0,
+  voice: null, voiceOffset: 0, volVoice: 1.0, reverb: 0, echo: 0,
   playing: false, recording: false,
   makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal",
   volDrums: 0.9, volBaglama: 0.9
@@ -370,19 +372,64 @@ function buildGraph(ac) {
   metal.gain.value = metalOn ? 1 : 0;
   plastic.gain.value = metalOn ? 0 : 1;
 
-  const voice = ac.createGain();
-  voice.gain.value = state.volVoice;
-  voice.connect(master);
+  // voice chain: dry plus an echo and a reverb send
+  const voiceIn = ac.createGain();
+  const voiceOut = ac.createGain();
+  voiceOut.gain.value = state.volVoice;
+  voiceOut.connect(master);
+  voiceIn.connect(voiceOut);
 
-  return { master, drums, bagIn, bagOut, metal, plastic, voice };
+  const delay = ac.createDelay(2);
+  delay.delayTime.value = Math.min(1.2, stepDur() * 2);
+  const feedback = ac.createGain();
+  feedback.gain.value = 0.34;
+  const echoWet = ac.createGain();
+  echoWet.gain.value = state.echo;
+  voiceIn.connect(delay);
+  delay.connect(feedback).connect(delay);
+  delay.connect(echoWet).connect(voiceOut);
+
+  const conv = ac.createConvolver();
+  conv.buffer = makeImpulse(ac, 2.4, 2.6);
+  const revWet = ac.createGain();
+  revWet.gain.value = state.reverb;
+  voiceIn.connect(conv).connect(revWet).connect(voiceOut);
+
+  return { master, drums, bagIn, bagOut, metal, plastic, voiceIn, voiceOut, echoWet, revWet, delay };
+}
+
+// A short burst of filtered noise decaying away makes a serviceable room.
+function makeImpulse(ac, seconds, decay) {
+  const n = Math.floor(ac.sampleRate * seconds);
+  const buf = ac.createBuffer(2, n, ac.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < n; i++) {
+      const t2 = i / n;
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t2, decay) * (i < ac.sampleRate * 0.01 ? 0 : 1);
+    }
+  }
+  return buf;
+}
+
+let voiceSources = [];
+
+function stopVoiceSources() {
+  for (const s of voiceSources) { try { s.stop(); } catch (e) {} }
+  voiceSources = [];
 }
 
 function playVoice(ac, g, time) {
   if (!state.voice) return;
+  if (ac === ctx) stopVoiceSources();          // one take at a time, never stacked
   const src = ac.createBufferSource();
   src.buffer = state.voice;
-  src.connect(g.voice);
+  src.connect(g.voiceIn);
   src.start(Math.max(time + state.voiceOffset, ac.currentTime), 0);
+  if (ac === ctx) {
+    voiceSources.push(src);
+    src.onended = () => { voiceSources = voiceSources.filter(s => s !== src); };
+  }
 }
 
 function playDrum(ac, g, rowId, time, vel) {
@@ -445,6 +492,7 @@ function movePlayhead() {
 function stopPlayback() {
   clearInterval(schedTimer); schedTimer = null;
   cancelAnimationFrame(rafId);
+  stopVoiceSources();
   state.playing = false;
   if (state.recording) toggleRec(false);
   $("play").classList.remove("playing");
@@ -936,7 +984,7 @@ async function renderOffline(repeats, parts) {
     if (parts.voice && state.voice) {
       const src = oc.createBufferSource();
       src.buffer = state.voice;
-      src.connect(g.voice);
+      src.connect(g.voiceIn);
       src.start(Math.max(0, base + state.voiceOffset));
     }
   }
@@ -1071,8 +1119,9 @@ async function toggleMic() {
   if (micRecorder && micRecorder.state === "recording") { micRecorder.stop(); return; }
   if (!navigator.mediaDevices || !window.MediaRecorder) { st.textContent = t("micNo"); return; }
   try {
+    // echo cancellation on, otherwise the mic records the loop coming out of the speakers
     micStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true }
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
   } catch (e) {
     st.textContent = t("micDenied");
@@ -1096,6 +1145,8 @@ async function toggleMic() {
       $("micOffset").value = 0;
       $("micClear").hidden = false;
       $("micOffset").parentElement.hidden = false;
+      $("fxRow").hidden = false;
+      drawWave();
       st.textContent = t("micSaved") + " " + buf.duration.toFixed(1) + "s";
     } catch (err) {
       st.textContent = t("failed") + err.message;
@@ -1108,13 +1159,46 @@ async function toggleMic() {
 }
 
 function clearVoice() {
+  stopVoiceSources();
   state.voice = null;
   state.voiceOffset = 0;
   voiceBase = 0;
   $("micOffset").value = 0;
   $("micClear").hidden = true;
   $("micOffset").parentElement.hidden = true;
+  $("fxRow").hidden = true;
   $("micStatus").textContent = "";
+  drawWave();
+}
+
+// waveform of the take, so you can see where your voice sits
+function drawWave() {
+  const c = $("wave");
+  if (!c) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(200, c.clientWidth), h = 72;
+  c.width = w * dpr; c.height = h * dpr;
+  const cx = c.getContext("2d");
+  cx.scale(dpr, dpr);
+  cx.clearRect(0, 0, w, h);
+  if (!state.voice) { c.hidden = true; return; }
+  c.hidden = false;
+  const d = state.voice.getChannelData(0);
+  const step = Math.max(1, Math.floor(d.length / w));
+  cx.fillStyle = cssVar("--accent");
+  for (let x = 0; x < w; x++) {
+    let lo = 1, hi = -1;
+    for (let i = 0; i < step; i++) {
+      const v = d[x * step + i] || 0;
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+    const y1 = (1 - hi) * h / 2, y2 = (1 - lo) * h / 2;
+    cx.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+  }
+  cx.strokeStyle = cssVar("--muted");
+  cx.globalAlpha = 0.4;
+  cx.beginPath(); cx.moveTo(0, h / 2); cx.lineTo(w, h / 2); cx.stroke();
 }
 
 /* ---------- demo pieces ---------- */
@@ -1844,7 +1928,15 @@ function init() {
   $("micOffset").addEventListener("input", e => { state.voiceOffset = voiceBase + +e.target.value; });
   $("volVoice").addEventListener("input", e => {
     state.volVoice = +e.target.value;
-    if (nodes) nodes.voice.gain.value = state.volVoice;
+    if (nodes) nodes.voiceOut.gain.value = state.volVoice;
+  });
+  $("fxReverb").addEventListener("input", e => {
+    state.reverb = +e.target.value;
+    if (nodes) nodes.revWet.gain.value = state.reverb;
+  });
+  $("fxEcho").addEventListener("input", e => {
+    state.echo = +e.target.value;
+    if (nodes) nodes.echoWet.gain.value = state.echo;
   });
   $("shareBtn").addEventListener("click", shareLink);
   $("videoBtn").addEventListener("click", exportVideo);

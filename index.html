@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=14">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 <header class="top">
@@ -96,6 +96,13 @@
       <label class="vol"><span data-i18n="vol">Ses</span>
         <input type="range" id="volVoice" min="0" max="1.5" step="0.01" value="1"></label>
     </div>
+    <div id="fxRow" class="rec-row" hidden>
+      <label><span data-i18n="fxReverb">Yankı</span>
+        <input type="range" id="fxReverb" min="0" max="1" step="0.01" value="0"></label>
+      <label><span data-i18n="fxEcho">Eko</span>
+        <input type="range" id="fxEcho" min="0" max="0.8" step="0.01" value="0"></label>
+    </div>
+    <canvas id="wave" class="wave" hidden></canvas>
     <p class="muted" data-i18n="micHint"></p>
     <p id="micStatus" class="muted"></p>
   </section>
@@ -173,6 +180,6 @@
 </div>
 
 <script src="demos.js?v=1"></script>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
