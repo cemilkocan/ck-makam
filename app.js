@@ -24,10 +24,8 @@ const MAKAMS = {
   "Nihavend": { steps: [9, 4, 9, 9, 4, 9, 9], mood: "sad" }
 };
 
-const TONICS = [
-  ["G", 196.00], ["A", 220.00], ["Bb", 233.08],
-  ["B", 246.94], ["C", 261.63], ["D", 293.66]
-];
+const TONICS = [["G", 196.00], ["A", 220.00], ["Bb", 233.08],
+                ["B", 246.94], ["C", 261.63], ["D", 293.66]];
 
 const DRUM_ROWS = ["doum", "tek", "tekhi", "mid", "mute",
                    "davul_dum", "davul_tek", "bendir", "zil", "tef", "snare", "clap"];
@@ -35,34 +33,20 @@ const DRUM_ROWS = ["doum", "tek", "tekhi", "mid", "mute",
 // Usul presets. steps = cells per bar, quarters = bar length in quarter notes,
 // groups = cells per beat. Patterns: X strong, x normal, o soft, . off.
 const USULS = {
-  "Maqsum (4/4)": {
-    steps: 8, quarters: 4, groups: [2, 2, 2, 2],
-    rows: { doum: "X...x...", tek: ".x.x..x." }
-  },
-  "Ayyub (2/4)": {
-    steps: 8, quarters: 2, groups: [4, 4],
-    rows: { doum: "X...x...", mute: "...o....", tek: "......x." }
-  },
-  "Çiftetelli (4/4)": {
-    steps: 16, quarters: 4, groups: [4, 4, 4, 4],
-    rows: { doum: "X.......x.x.....", tek: "...x..x.....x..." }
-  },
-  "Sofyan (4/4)": {
-    steps: 8, quarters: 4, groups: [2, 2, 2, 2],
-    rows: { doum: "X.......", tek: "....x...", mute: ".....o.." }
-  },
-  "Karşılama (9/8)": {
-    steps: 9, quarters: 4.5, groups: [2, 2, 2, 3],
-    rows: { doum: "X...x....", tek: "..x...x.x" }
-  },
-  "Aksak (9/8)": {
-    steps: 9, quarters: 4.5, groups: [2, 2, 2, 3],
-    rows: { doum: "X...x....", tek: "......x..", mute: "..o.....o" }
-  },
-  "Düyek (8/8)": {
-    steps: 8, quarters: 4, groups: [2, 2, 2, 2],
-    rows: { doum: "X..x....", tek: "...x.x.x", mute: "....o..." }
-  },
+  "Maqsum (4/4)": { steps: 8, quarters: 4, groups: [2, 2, 2, 2],
+    rows: { doum: "X...x...", tek: ".x.x..x." } },
+  "Ayyub (2/4)": { steps: 8, quarters: 2, groups: [4, 4],
+    rows: { doum: "X...x...", mute: "...o....", tek: "......x." } },
+  "Çiftetelli (4/4)": { steps: 16, quarters: 4, groups: [4, 4, 4, 4],
+    rows: { doum: "X.......x.x.....", tek: "...x..x.....x..." } },
+  "Sofyan (4/4)": { steps: 8, quarters: 4, groups: [2, 2, 2, 2],
+    rows: { doum: "X.......", tek: "....x...", mute: ".....o.." } },
+  "Karşılama (9/8)": { steps: 9, quarters: 4.5, groups: [2, 2, 2, 3],
+    rows: { doum: "X...x....", tek: "..x...x.x" } },
+  "Aksak (9/8)": { steps: 9, quarters: 4.5, groups: [2, 2, 2, 3],
+    rows: { doum: "X...x....", tek: "......x..", mute: "..o.....o" } },
+  "Düyek (8/8)": { steps: 8, quarters: 4, groups: [2, 2, 2, 2],
+    rows: { doum: "X..x....", tek: "...x.x.x", mute: "....o..." } },
   "Boş (4/4)": { steps: 16, quarters: 4, groups: [4, 4, 4, 4], rows: {} }
 };
 
@@ -80,18 +64,22 @@ const SOUND_FILES = (() => {
 const I18N = {
   tr: {
     play: "Çal", stop: "Dur", usul: "Usul", bars: "Ölçü", clear: "Temizle", vol: "Ses",
-    swing: "Salınım", theme: "Tema",
+    swing: "Salınım", theme: "Tema", collapse: "Gizle", expand: "Göster",
     makam: "Makam", tonic: "Karar", strings: "Tel", metal: "Metal tel", plastic: "Plastik tel",
-    smart: "Akıllı dizi", smartHelp: "Açıkken dizi dışı tuşlar en yakın makam perdesine kayar, yanlış nota çalamazsın. Kapatırsan klavye tam kromatik olur, diyezler kendi sesini verir.",
+    smart: "Akıllı dizi",
+    smartHelp: "Açıkken dizi dışı tuşlar en yakın makam perdesine kayar, yanlış nota çalamazsın. Kapatırsan klavye tam kromatik olur, diyezler kendi sesini verir.",
     record: "Kayıt", recording: "Kaydediyor", quantize: "Gride yapış", undo: "Geri al",
     notes: "nota", export: "İndir", loops: "Tekrar", save: "Projeyi kaydet", load: "Proje aç",
     rendering: "Hazırlanıyor...", encoding: "MP3 kodlanıyor...", packing: "Paketleniyor...",
     done: "Bitti.", failed: "Hata: ", loaded: "Proje yüklendi.",
     strong: "Güçlü", normal: "Normal", soft: "Hafif", off: "Boş",
-    strongT: "Aksanlı, en sert vuruş", normalT: "Normal vuruş", softT: "Kısık, yumuşak vuruş", offT: "Sessiz",
+    strongT: "Vurgulu, en sert vuruş", normalT: "Normal vuruş", softT: "Kısık, yumuşak vuruş", offT: "Sessiz",
     muteTip: "Tıkla: bu satırı sustur veya aç",
-    rollHint: "Boş yere tıkla, nota ekle. Notayı sürükleyerek yerini değiştir. Sağ tık siler. Gridde sağ tık vuruşu susturur, satır adına tıklamak o çalgıyı susturur.",
-    midi: "MIDI bağla", midiOn: "MIDI: ", midiNone: "MIDI cihazı yok", midiNo: "Tarayıcı MIDI desteklemiyor",
+    rollHint: "Boş yere tıkla, nota ekle. Notayı sürükleyerek yerini değiştir. Sağ tık siler.",
+    gridHint: "Hücreye tıkla: normal, güçlü, hafif, boş. Sağ tık doğrudan susturur. Satır adına tıklamak o çalgıyı susturur.",
+    midi: "MIDI bağla", midiDevice: "Cihaz", midiNone: "MIDI cihazı bulunamadı",
+    midiNo: "Bu tarayıcı MIDI desteklemiyor, Chrome ya da Edge dene",
+    midiDenied: "MIDI izni verilmedi. Adres çubuğundaki kilit simgesinden izni açıp tekrar dene.",
     kbHint: "Bilgisayardan çal: A S D F G H J K L tuşları beyaz, W E T Y U O P siyah perdeler. Z X C V B N M darbuka. Boşluk çal/dur.",
     rotate: "Daha geniş çalışmak için telefonu yan çevir.",
     credits: "Emeği geçenler",
@@ -99,11 +87,9 @@ const I18N = {
     tagline: "Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.",
     noteNames: ["Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"],
     moods: { happy: "neşeli", sad: "hüzünlü", calm: "sakin" },
-    drums: {
-      doum: "Düm", tek: "Tek", tekhi: "Tek tiz", mid: "Orta", mute: "Ka",
+    drums: { doum: "Düm", tek: "Tek", tekhi: "Tek tiz", mid: "Orta", mute: "Ka",
       davul_dum: "Davul düm", davul_tek: "Davul çubuk", bendir: "Bendir",
-      zil: "Zil", tef: "Tef", snare: "Trampet", clap: "Alkış"
-    },
+      zil: "Zil", tef: "Tef", snare: "Trampet", clap: "Alkış" },
     usulInfo: {
       "Maqsum (4/4)": "Arap ve Türk popunun en çok duyulan ritmi. Düm tek tek, düm tek. Oynak ve tanıdık.",
       "Ayyub (2/4)": "Hızlı dönen iki zamanlı kalıp. Göbek dansında ve sufi müziğinde duyarsın.",
@@ -122,13 +108,24 @@ const I18N = {
       "Kürdi": "Üzgün ve yalın. İkinci perde pes olduğu için baştan koyu bir renk verir.",
       "Hüzzam": "Dokunaklı, kıvrımlı. Hicaz'a benzer ama karar sesi başka yerde durur.",
       "Nihavend": "Romantik ve üzgün. Batı minörünün karşılığı."
-    }
+    },
+    tourTitle: "CK Makam'a hoş geldin",
+    tourSkip: "Atla", tourNext: "İleri", tourPrev: "Geri", tourDone: "Başla",
+    tour: [
+      ["Çal düğmesi", "Yeşil düğmeye bas, hazır bir darbuka ritmi dönmeye başlar. Tempoyu yanındaki BPM ile değiştirirsin."],
+      ["Ritmi değiştir", "Karelere tıkla. Her tıklamada normal, güçlü, hafif ve boş arasında döner. Sağ tık doğrudan susturur. Soldaki çalgı adına tıklarsan o satır komple susar."],
+      ["Usul seç", "Maqsum, Çiftetelli, Karşılama gibi hazır kalıplar var. Yanındaki soru işaretine basarsan her birinin ne olduğunu okursun."],
+      ["Makam ve bağlama", "Makam seçip piyanodan çal. Akıllı dizi açıkken yanlış nota basamazsın, her tuş makamın perdesine oturur."],
+      ["Nota kaydet", "Çal derken Kayıt'a bas ve piyanodan çal. Çaldığın notalar üstteki piyano roll'a düşer. Oradan sürükleyip yerini değiştirir, sağ tıkla silersin."],
+      ["İndir", "Bitince MP3, WAV ya da her çalgı ayrı dosya olacak şekilde stems indir. Projeni kaydedip sonra kaldığın yerden devam da edebilirsin."]
+    ]
   },
   en: {
     play: "Play", stop: "Stop", usul: "Usul", bars: "Bars", clear: "Clear", vol: "Vol",
-    swing: "Swing", theme: "Theme",
+    swing: "Swing", theme: "Theme", collapse: "Hide", expand: "Show",
     makam: "Makam", tonic: "Tonic", strings: "Strings", metal: "Metal strings", plastic: "Plastic strings",
-    smart: "Smart scale", smartHelp: "When on, out-of-scale keys snap to the nearest makam pitch, so you cannot play a wrong note. Turn it off for a fully chromatic keyboard where sharps play their own pitch.",
+    smart: "Smart scale",
+    smartHelp: "When on, out-of-scale keys snap to the nearest makam pitch, so you cannot play a wrong note. Turn it off for a fully chromatic keyboard where sharps play their own pitch.",
     record: "Record", recording: "Recording", quantize: "Snap to grid", undo: "Undo",
     notes: "notes", export: "Export", loops: "Loops", save: "Save project", load: "Open project",
     rendering: "Rendering...", encoding: "Encoding MP3...", packing: "Packing...",
@@ -136,8 +133,11 @@ const I18N = {
     strong: "Strong", normal: "Normal", soft: "Soft", off: "Off",
     strongT: "Accented, hardest stroke", normalT: "Normal stroke", softT: "Muted, gentle stroke", offT: "Silent",
     muteTip: "Click to mute or unmute this row",
-    rollHint: "Click an empty spot to add a note. Drag a note to move it. Right-click deletes it. In the grid, right-click silences a stroke and clicking a row name mutes that drum.",
-    midi: "Connect MIDI", midiOn: "MIDI: ", midiNone: "No MIDI device", midiNo: "Browser has no MIDI support",
+    rollHint: "Click an empty spot to add a note. Drag a note to move it. Right-click deletes it.",
+    gridHint: "Click a cell to cycle normal, strong, soft, off. Right-click silences it outright. Click a row name to mute that drum.",
+    midi: "Connect MIDI", midiDevice: "Device", midiNone: "No MIDI device found",
+    midiNo: "This browser has no MIDI support, try Chrome or Edge",
+    midiDenied: "MIDI permission was refused. Allow it from the lock icon in the address bar and try again.",
     kbHint: "Play from the computer: A S D F G H J K L are white keys, W E T Y U O P are black. Z X C V B N M hit the drums. Space starts and stops.",
     rotate: "Turn the phone sideways for more room.",
     credits: "Credits",
@@ -145,11 +145,9 @@ const I18N = {
     tagline: "Free. Everything runs in your browser, nothing is uploaded.",
     noteNames: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
     moods: { happy: "bright", sad: "melancholic", calm: "calm" },
-    drums: {
-      doum: "Dum", tek: "Tek", tekhi: "Tek hi", mid: "Mid", mute: "Ka",
+    drums: { doum: "Dum", tek: "Tek", tekhi: "Tek hi", mid: "Mid", mute: "Ka",
       davul_dum: "Davul low", davul_tek: "Davul stick", bendir: "Bendir",
-      zil: "Zil", tef: "Tef", snare: "Snare", clap: "Clap"
-    },
+      zil: "Zil", tef: "Tef", snare: "Snare", clap: "Clap" },
     usulInfo: {
       "Maqsum (4/4)": "The most common rhythm in Arabic and Turkish pop. Dum tek tek, dum tek. Bouncy and familiar.",
       "Ayyub (2/4)": "A fast turning two-beat pattern, heard in belly dance and sufi music.",
@@ -168,12 +166,21 @@ const I18N = {
       "Kürdi": "Sad and plain. The flat second gives it a dark colour from the first note.",
       "Hüzzam": "Poignant and winding. Close to Hicaz but it comes to rest elsewhere.",
       "Nihavend": "Romantic and sad. The equivalent of the Western minor scale."
-    }
+    },
+    tourTitle: "Welcome to CK Makam",
+    tourSkip: "Skip", tourNext: "Next", tourPrev: "Back", tourDone: "Start",
+    tour: [
+      ["The play button", "Press the green button and a ready-made darbuka rhythm starts looping. Change the speed with the BPM box next to it."],
+      ["Change the rhythm", "Click the cells. Each click cycles normal, strong, soft and off. Right-click silences a cell outright. Click a drum name on the left to mute the whole row."],
+      ["Pick an usul", "Maqsum, Çiftetelli, Karşılama and more are built in. Press the question mark beside the list to read what each one is."],
+      ["Makam and bağlama", "Choose a makam and play the piano. With smart scale on you cannot hit a wrong note, every key lands on a makam pitch."],
+      ["Record notes", "While it plays, press Record and play the piano. Your notes land in the piano roll above, where you can drag them around and right-click to delete."],
+      ["Export", "When you are happy, download an MP3, a WAV, or stems with every instrument in its own file. You can also save the project and pick it up later."]
+    ]
   }
 };
 
-let lang = "tr";
-let theme = "toprak";
+let lang = "tr", theme = "toprak";
 try {
   lang = localStorage.getItem("ckm_lang") || "tr";
   theme = localStorage.getItem("ckm_theme") || "toprak";
@@ -194,9 +201,11 @@ const state = {
 
 let ctx = null, nodes = null;
 const buffers = {};
-let keys = [];                 // piano keys: { midi, white, freq, inScale, isTonic }
+let keys = [];
 let schedTimer = null, stepCursor = 0, nextStepTime = 0, loopStartTime = 0, scheduledLoop = -1, rafId = 0;
 const held = new Set();
+let midiAccess = null, midiInputId = "all";
+let tipTimer = 0, tourStep = 0;
 
 /* ---------- helpers ---------- */
 
@@ -226,7 +235,6 @@ function buildKeys() {
   const pat = MAKAMS[state.makam].steps;
   const tonicMidi = Math.round(69 + 12 * Math.log2(state.tonic / 440));
 
-  // Makam degrees over two octaves, measured in commas from an octave below the tonic.
   const degrees = [];
   let commas = -53;
   for (let oct = 0; oct < 2; oct++)
@@ -242,16 +250,13 @@ function buildKeys() {
     const cents = (m - tonicMidi) * 100;
     const hit = degrees.find(d => Math.abs(d.commas * 1200 / 53 - cents) < 25);
     keys.push({
-      midi: m,
-      white: isWhite(m),
+      midi: m, white: isWhite(m), cents,
       freq: hit ? state.tonic * Math.pow(2, hit.commas / 53)
                 : state.tonic * Math.pow(2, (m - tonicMidi) / 12),
       inScale: !!hit,
-      isTonic: hit ? hit.deg === 0 : false,
-      cents
+      isTonic: hit ? hit.deg === 0 : false
     });
   }
-  // Smart scale: an out-of-scale key snaps to the nearest makam pitch.
   for (const k of keys) {
     if (k.inScale) { k.snapFreq = k.freq; continue; }
     let best = degrees[0], bd = 1e9;
@@ -264,6 +269,7 @@ function buildKeys() {
 }
 
 const keyFreq = k => (state.smart ? k.snapFreq : k.freq);
+const keyIndexByMidi = m => keys.findIndex(k => k.midi === m);
 
 /* ---------- audio ---------- */
 
@@ -333,18 +339,26 @@ function playNote(ac, g, freq, time, vel = 0.9) {
   src.start(Math.max(time, ac.currentTime));
 }
 
-const VELS = [0, 0.8, 1.0, 0.5];                 // off, normal, strong, soft
+const VELS = [0, 0.8, 1.0, 0.5];
 const humanVel = v => Math.max(0.1, v + (Math.random() - 0.5) * 0.08);
 
 /* ---------- transport ---------- */
+
+function setPlayIcon() {
+  $("play").innerHTML = state.playing
+    ? '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="4.5" height="14" rx="1" fill="currentColor"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>';
+  $("play").title = state.playing ? t("stop") : t("play");
+  $("play").setAttribute("aria-label", state.playing ? t("stop") : t("play"));
+}
 
 function startPlayback() {
   stepCursor = 0; scheduledLoop = -1;
   nextStepTime = loopStartTime = ctx.currentTime + 0.1;
   schedTimer = setInterval(schedule, 25);
   state.playing = true;
-  $("play").textContent = t("stop");
   $("play").classList.add("playing");
+  setPlayIcon();
   rafId = requestAnimationFrame(movePlayhead);
 }
 
@@ -353,7 +367,7 @@ function movePlayhead() {
   if (ph && ctx) {
     let p = (ctx.currentTime - loopStartTime) % loopDur();
     if (p < 0) p += loopDur();
-    ph.style.top = (p / loopDur()) * rollH() + "px";
+    ph.style.left = (p / loopDur()) * timeW() + "px";
   }
   if (state.playing) rafId = requestAnimationFrame(movePlayhead);
 }
@@ -363,8 +377,8 @@ function stopPlayback() {
   cancelAnimationFrame(rafId);
   state.playing = false;
   if (state.recording) toggleRec(false);
-  $("play").textContent = t("play");
   $("play").classList.remove("playing");
+  setPlayIcon();
   document.querySelectorAll(".cell.now").forEach(c => c.classList.remove("now"));
 }
 
@@ -442,6 +456,7 @@ function renderGrid() {
       e.preventDefault();
       state.muted.has(row) ? state.muted.delete(row) : state.muted.add(row);
       lab.classList.toggle("muted", state.muted.has(row));
+      lab.blur();
     };
     lab.addEventListener("click", toggleMute);
     lab.addEventListener("contextmenu", toggleMute);
@@ -457,9 +472,9 @@ function renderGrid() {
         const next = cur === 0 ? 1 : cur === 1 ? 2 : cur === 2 ? 3 : 0;
         state.grid[row][i] = next;
         paintCell(cell, next);
+        cell.blur();
         if (next) { await initAudio(); playDrum(ctx, nodes, row, ctx.currentTime, VELS[next]); }
       });
-      // Right-click silences the cell outright instead of cycling through.
       cell.addEventListener("contextmenu", e => {
         e.preventDefault();
         state.grid[row][i] = 0;
@@ -477,14 +492,147 @@ function paintCell(cell, v) {
   cell.classList.toggle("soft", v === 3);
 }
 
-/* ---------- piano ---------- */
+/* ---------- piano roll: time runs left to right, pitch stacked top to bottom ---------- */
 
-let layout = { width: 0 };
+const wideScreen = () => window.innerWidth > 760;
+const LANE_H = () => (wideScreen() ? 16 : 14);
+const CELL_W = () => (wideScreen() ? 30 : 26);
+const timeW = () => CELL_W() * totalSteps();
+const laneOf = i => keys.length - 1 - i;              // highest pitch on top
+
+function keyIndexAtY(y) {
+  const i = keys.length - 1 - Math.floor(y / LANE_H());
+  return keys[i] ? i : null;
+}
+
+function placeNote(el, n) {
+  const i = keyIndexByMidi(n.midi);
+  if (i < 0) return;
+  el.style.left = (n.t / loopDur()) * timeW() + "px";
+  el.style.width = Math.max(7, (n.len / loopDur()) * timeW() - 1) + "px";
+  el.style.top = laneOf(i) * LANE_H() + 1 + "px";
+  el.style.height = LANE_H() - 2 + "px";
+}
+
+function renderRoll() {
+  const strip = $("keystrip"), area = $("rollarea");
+  if (!strip || !area) return;
+  const lh = LANE_H(), u = usulDef(), h = keys.length * lh;
+
+  strip.style.height = h + "px";
+  area.style.height = h + "px";
+  area.style.width = timeW() + "px";
+  strip.innerHTML = "";
+  area.innerHTML = "";
+
+  for (let li = 0; li < keys.length; li++) {
+    const k = keys[keys.length - 1 - li];
+    const kb = document.createElement("button");
+    kb.className = "kstrip " + (k.white ? "w" : "b") +
+      (k.isTonic ? " tonic" : "") + (k.inScale ? "" : " outscale");
+    kb.style.height = lh + "px";
+    kb.textContent = midiToName(k.midi);
+    kb.addEventListener("pointerdown", e => { e.preventDefault(); hitKey(keys.length - 1 - li); });
+    strip.appendChild(kb);
+
+    const lane = document.createElement("div");
+    lane.className = "lane " + (k.white ? "w" : "b") + (k.inScale ? "" : " outscale");
+    lane.style.top = li * lh + "px";
+    lane.style.height = lh + "px";
+    area.appendChild(lane);
+  }
+
+  const beatStarts = new Set();
+  let acc = 0;
+  for (const g of u.groups) { beatStarts.add(acc); acc += g; }
+  for (let i = 0; i < totalSteps(); i++) {
+    const line = document.createElement("div");
+    line.className = "vline" + (beatStarts.has(i % u.steps) ? " beat" : "");
+    line.style.left = i * CELL_W() + "px";
+    area.appendChild(line);
+  }
+
+  for (const n of state.notes) {
+    if (n.midi === undefined) {
+      let best = keys[0], bd = 1e9;
+      for (const k of keys) { const d = Math.abs(Math.log2(n.f / keyFreq(k))); if (d < bd) { bd = d; best = k; } }
+      n.midi = best.midi;
+    }
+    if (n.len === undefined) n.len = stepDur();
+    const el = document.createElement("div");
+    el.className = "note";
+    placeNote(el, n);
+    el.addEventListener("pointerdown", e => startDrag(e, n, el));
+    el.addEventListener("contextmenu", e => {
+      e.preventDefault();
+      state.notes.splice(state.notes.indexOf(n), 1);
+      updateNoteCount();
+      renderRoll();
+    });
+    area.appendChild(el);
+  }
+
+  const ph = document.createElement("div");
+  ph.className = "playhead";
+  ph.id = "playhead";
+  area.appendChild(ph);
+
+  area.onpointerdown = async e => {
+    if (e.target !== area) return;
+    const r = area.getBoundingClientRect();
+    const i = keyIndexAtY(e.clientY - r.top);
+    if (i === null) return;
+    let time = (e.clientX - r.left) / timeW() * loopDur();
+    if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
+    time = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
+    state.notes.push({ t: time, f: keyFreq(keys[i]), midi: keys[i].midi, vel: 0.9, len: stepDur() });
+    updateNoteCount();
+    renderRoll();
+    await initAudio();
+    playNote(ctx, nodes, keyFreq(keys[i]), ctx.currentTime);
+  };
+
+  // keep the tonic in view the first time the roll is drawn
+  const wrap = $("rollwrap");
+  if (wrap && !wrap.dataset.scrolled) {
+    const ti = keys.findIndex(k => k.isTonic);
+    if (ti >= 0) wrap.scrollTop = Math.max(0, laneOf(ti) * lh - wrap.clientHeight / 2);
+    wrap.dataset.scrolled = "1";
+  }
+}
+
+function startDrag(e, n, el) {
+  e.preventDefault();
+  e.stopPropagation();
+  const area = $("rollarea"), r = area.getBoundingClientRect();
+  const grabX = e.clientX - r.left - (n.t / loopDur()) * timeW();
+  el.setPointerCapture(e.pointerId);
+  el.classList.add("dragging");
+
+  const move = ev => {
+    let time = (ev.clientX - r.left - grabX) / timeW() * loopDur();
+    if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
+    n.t = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
+    const i = keyIndexAtY(ev.clientY - r.top);
+    if (i !== null) { n.midi = keys[i].midi; n.f = keyFreq(keys[i]); }
+    placeNote(el, n);
+  };
+  const up = () => {
+    el.classList.remove("dragging");
+    el.removeEventListener("pointermove", move);
+    el.removeEventListener("pointerup", up);
+    el.removeEventListener("pointercancel", up);
+  };
+  el.addEventListener("pointermove", move);
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+}
+
+/* ---------- playable keyboard ---------- */
 
 function renderKeys() {
   buildKeys();
-  const wide = window.innerWidth > 760;
-  const WW = wide ? 46 : 38, BW = wide ? 28 : 23;
+  const WW = wideScreen() ? 46 : 38, BW = wideScreen() ? 28 : 23;
   const piano = $("piano");
   piano.innerHTML = "";
 
@@ -503,22 +651,18 @@ function renderKeys() {
     btn.title = Math.round(keyFreq(k)) + " Hz";
     btn.addEventListener("pointerdown", e => { e.preventDefault(); hitKey(i); });
     if (k.white) {
-      k.x = whiteCount * WW; k.w = WW;
       btn.style.width = WW + "px";
       whites.appendChild(btn);
       whiteCount++;
     } else {
-      k.x = whiteCount * WW - BW / 2; k.w = BW;
       btn.style.width = BW + "px";
-      btn.style.left = k.x + "px";
+      btn.style.left = (whiteCount * WW - BW / 2) + "px";
       blacks.appendChild(btn);
     }
   });
-  layout.width = whiteCount * WW;
-  whites.style.width = layout.width + "px";
+  whites.style.width = whiteCount * WW + "px";
   piano.appendChild(whites);
   piano.appendChild(blacks);
-  $("rollInner").style.width = layout.width + "px";
   $("kbHint").textContent = t("kbHint");
   renderRoll();
 }
@@ -546,123 +690,6 @@ function recordNote(k, vel) {
   renderRoll();
 }
 
-/* ---------- piano roll: notes fall from the top down to the keyboard ---------- */
-
-const rollH = () => (window.innerWidth > 760 ? 260 : 180);
-const keyByMidi = m => keys.find(k => k.midi === m);
-
-function keyAtX(x) {
-  for (const k of keys) if (!k.white && x >= k.x && x < k.x + k.w) return k;   // black keys sit on top
-  for (const k of keys) if (k.white && x >= k.x && x < k.x + k.w) return k;
-  return null;
-}
-
-function placeNote(el, n) {
-  const k = keyByMidi(n.midi) || keys[0];
-  const h = rollH();
-  el.style.left = k.x + "px";
-  el.style.width = k.w + "px";
-  el.style.top = (n.t / loopDur()) * h + "px";
-  el.style.height = Math.max(9, (n.len / loopDur()) * h) + "px";
-  el.classList.toggle("black", !k.white);
-}
-
-function renderRoll() {
-  const roll = $("roll");
-  if (!roll) return;
-  const h = rollH(), u = usulDef();
-  roll.style.height = h + "px";
-  roll.innerHTML = "";
-
-  // step and beat lines
-  const beatStarts = new Set();
-  let acc = 0;
-  for (const g of u.groups) { beatStarts.add(acc); acc += g; }
-  for (let i = 0; i < totalSteps(); i++) {
-    const line = document.createElement("div");
-    line.className = "rline" + (beatStarts.has(i % u.steps) ? " beat" : "");
-    line.style.top = (i / totalSteps()) * h + "px";
-    roll.appendChild(line);
-  }
-  // lane shading for keys outside the makam
-  for (const k of keys) {
-    if (k.inScale || !k.white) continue;
-    const lane = document.createElement("div");
-    lane.className = "lane";
-    lane.style.left = k.x + "px";
-    lane.style.width = k.w + "px";
-    roll.appendChild(lane);
-  }
-
-  for (const n of state.notes) {
-    if (n.midi === undefined) {                       // notes from an older project file
-      let best = keys[0], bd = 1e9;
-      for (const k of keys) { const d = Math.abs(Math.log2(n.f / keyFreq(k))); if (d < bd) { bd = d; best = k; } }
-      n.midi = best.midi;
-    }
-    if (n.len === undefined) n.len = stepDur();
-    const el = document.createElement("div");
-    el.className = "note";
-    placeNote(el, n);
-    el.addEventListener("pointerdown", e => startDrag(e, n, el));
-    el.addEventListener("contextmenu", e => {
-      e.preventDefault();
-      state.notes.splice(state.notes.indexOf(n), 1);
-      updateNoteCount();
-      renderRoll();
-    });
-    roll.appendChild(el);
-  }
-
-  const ph = document.createElement("div");
-  ph.className = "playhead";
-  ph.id = "playhead";
-  roll.appendChild(ph);
-
-  // click on empty space adds a note
-  roll.onpointerdown = async e => {
-    if (e.target !== roll) return;
-    const r = roll.getBoundingClientRect();
-    const k = keyAtX(e.clientX - r.left);
-    if (!k) return;
-    let time = (e.clientY - r.top) / h * loopDur();
-    if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
-    time = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
-    state.notes.push({ t: time, f: keyFreq(k), midi: k.midi, vel: 0.9, len: stepDur() });
-    updateNoteCount();
-    renderRoll();
-    await initAudio();
-    playNote(ctx, nodes, keyFreq(k), ctx.currentTime);
-  };
-}
-
-function startDrag(e, n, el) {
-  e.preventDefault();
-  e.stopPropagation();
-  const roll = $("roll"), r = roll.getBoundingClientRect(), h = rollH();
-  const grabY = e.clientY - r.top - (n.t / loopDur()) * h;
-  el.setPointerCapture(e.pointerId);
-  el.classList.add("dragging");
-
-  const move = ev => {
-    let time = (ev.clientY - r.top - grabY) / h * loopDur();
-    if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
-    n.t = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
-    const k = keyAtX(ev.clientX - r.left);
-    if (k) { n.midi = k.midi; n.f = keyFreq(k); }
-    placeNote(el, n);
-  };
-  const up = () => {
-    el.classList.remove("dragging");
-    el.removeEventListener("pointermove", move);
-    el.removeEventListener("pointerup", up);
-    el.removeEventListener("pointercancel", up);
-  };
-  el.addEventListener("pointermove", move);
-  el.addEventListener("pointerup", up);
-  el.addEventListener("pointercancel", up);
-}
-
 function updateNoteCount() {
   $("noteCount").textContent = state.notes.length ? state.notes.length + " " + t("notes") : "";
 }
@@ -684,8 +711,10 @@ const DRUM_KEYS = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM"];
 
 function onKeyDown(e) {
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "Escape") { hideTip(); return; }
   const tag = (e.target.tagName || "").toLowerCase();
   if (tag === "input" || tag === "select" || tag === "textarea") return;
+  if (!$("tour").hidden) return;
 
   if (e.code === "Space") {
     e.preventDefault();
@@ -701,8 +730,8 @@ function onKeyDown(e) {
   const off = KEY_MAP[e.code];
   if (off === undefined) return;
   e.preventDefault();
-  const start = keys.findIndex(k => k.midi >= keys[0].midi + 12);
-  const i = (start < 0 ? 0 : start) + off;
+  const base = keys.findIndex(k => k.midi >= keys[0].midi + 12);
+  const i = (base < 0 ? 0 : base) + off;
   if (!held.has(e.code)) { held.add(e.code); hitKey(i); }
 }
 
@@ -712,31 +741,54 @@ async function connectMidi() {
   const st = $("midiStatus");
   if (!navigator.requestMIDIAccess) { st.textContent = t("midiNo"); return; }
   try {
-    const access = await navigator.requestMIDIAccess();
-    const bind = () => {
-      const names = [];
-      for (const inp of access.inputs.values()) { inp.onmidimessage = onMidi; names.push(inp.name); }
-      st.textContent = names.length ? t("midiOn") + names.join(", ") : t("midiNone");
-    };
-    bind();
-    access.onstatechange = bind;
+    midiAccess = await navigator.requestMIDIAccess();
+    midiAccess.onstatechange = bindMidi;
+    bindMidi();
   } catch (err) {
-    st.textContent = t("failed") + err.message;
+    st.textContent = t("midiDenied");
   }
+}
+
+function bindMidi() {
+  if (!midiAccess) return;
+  const sel = $("midiSel"), st = $("midiStatus");
+  const inputs = [...midiAccess.inputs.values()];
+  sel.innerHTML = "";
+  if (!inputs.length) {
+    sel.hidden = true;
+    st.textContent = t("midiNone");
+    return;
+  }
+  const all = document.createElement("option");
+  all.value = "all";
+  all.textContent = lang === "tr" ? "Tüm cihazlar" : "All devices";
+  sel.appendChild(all);
+  for (const inp of inputs) {
+    const o = document.createElement("option");
+    o.value = inp.id;
+    o.textContent = inp.name;
+    sel.appendChild(o);
+  }
+  if (![...sel.options].some(o => o.value === midiInputId)) midiInputId = "all";
+  sel.value = midiInputId;
+  sel.hidden = false;
+  for (const inp of inputs)
+    inp.onmidimessage = (midiInputId === "all" || inp.id === midiInputId) ? onMidi : null;
+  st.textContent = inputs.length + (lang === "tr" ? " cihaz bağlı" : " device(s) connected");
 }
 
 function onMidi(msg) {
   const [status, note, vel] = msg.data;
   if ((status & 0xf0) !== 0x90 || !vel) return;
-  let i = keys.findIndex(k => k.midi === note);
-  if (i < 0) {                                  // fold octaves into the visible range
+  let i = keyIndexByMidi(note);
+  if (i < 0) {
     const lo = keys[0].midi, hi = keys[keys.length - 1].midi;
     let n = note;
     while (n < lo) n += 12;
     while (n > hi) n -= 12;
-    i = keys.findIndex(k => k.midi === n);
+    i = keyIndexByMidi(n);
   }
-  if (i >= 0) hitKey(i, Math.max(0.2, vel / 127));
+  if (i >= 0) hitKey(i, Math.max(0.15, vel / 127));      // velocity from the controller
 }
 
 /* ---------- export ---------- */
@@ -780,7 +832,6 @@ function bufferToWav(buf) {
 }
 
 function encodeMp3(buf) {
-  // Runs in a Web Worker so the page does not freeze while encoding.
   return new Promise((resolve, reject) => {
     const w = new Worker("export-worker.js");
     const l = new Float32Array(buf.getChannelData(0));
@@ -886,7 +937,7 @@ function saveProject() {
   const data = {
     v: 1, bpm: state.bpm, usul: state.usul, bars: state.bars, swing: state.swing,
     makam: state.makam, tonic: state.tonic, smart: state.smart, strings: state.strings,
-    notes: state.notes,
+    notes: state.notes, muted: [...state.muted],
     grid: Object.fromEntries(DRUM_ROWS.map(r => [r, Array.from(state.grid[r])]))
   };
   download(new Blob([JSON.stringify(data)], { type: "application/json" }),
@@ -899,31 +950,99 @@ function loadProject(file) {
     try {
       const d = JSON.parse(fr.result);
       if (state.playing) stopPlayback();
-      state.bpm = d.bpm; state.usul = USULS[d.usul] ? d.usul : state.usul;
-      state.bars = d.bars; state.swing = d.swing || 0;
+      state.bpm = d.bpm || 100;
+      state.usul = USULS[d.usul] ? d.usul : state.usul;
+      state.bars = d.bars || 2;
+      state.swing = d.swing || 0;
       state.makam = MAKAMS[d.makam] ? d.makam : state.makam;
-      state.tonic = d.tonic; state.smart = !!d.smart; state.strings = d.strings || "metal";
+      state.tonic = d.tonic || 220;
+      state.smart = !!d.smart;
+      state.strings = d.strings || "metal";
       state.notes = Array.isArray(d.notes) ? d.notes : [];
+      state.muted = new Set(d.muted || []);
       initGrid(false);
       for (const r of DRUM_ROWS)
         if (d.grid && d.grid[r]) state.grid[r] = Uint8Array.from(d.grid[r].slice(0, totalSteps()));
       $("bpm").value = $("bpmRange").value = state.bpm;
-      $("usul").value = state.usul; $("bars").value = state.bars;
-      $("swing").value = state.swing; $("makam").value = state.makam;
-      $("shift").value = state.tonic; $("smart").checked = state.smart;
+      $("usul").value = state.usul;
+      $("bars").value = state.bars;
+      $("swing").value = state.swing;
+      $("makam").value = state.makam;
+      $("shift").value = state.tonic;
+      $("smart").checked = state.smart;
       $("strings").value = state.strings;
       if (nodes) {
         const metalOn = state.strings === "metal";
         nodes.metal.gain.value = metalOn ? 1 : 0;
         nodes.plastic.gain.value = metalOn ? 0 : 1;
       }
-      renderGrid(); renderKeys(); updateNoteCount(); updateInfo();
+      renderGrid(); renderKeys(); updateNoteCount();
       $("exportStatus").textContent = t("loaded");
     } catch (err) {
       $("exportStatus").textContent = t("failed") + err.message;
     }
   };
   fr.readAsText(file);
+}
+
+/* ---------- tooltips ---------- */
+
+function showTip(btn, text) {
+  const tip = $("tip");
+  tip.textContent = text;
+  tip.hidden = false;
+  const r = btn.getBoundingClientRect();
+  const w = Math.min(320, window.innerWidth - 24);
+  tip.style.width = w + "px";
+  tip.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + "px";
+  tip.style.top = r.bottom + window.scrollY + 8 + "px";
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(hideTip, 8000);
+}
+
+function hideTip() {
+  clearTimeout(tipTimer);
+  const tip = $("tip");
+  if (tip) tip.hidden = true;
+}
+
+function wireHelp(btnId, getText) {
+  const b = $(btnId), tip = $("tip");
+  b.addEventListener("click", e => {
+    e.stopPropagation();
+    const open = !tip.hidden && tip.dataset.from === btnId;
+    if (open) { hideTip(); return; }
+    tip.dataset.from = btnId;
+    showTip(b, getText());
+  });
+  b.addEventListener("pointerenter", () => {
+    if (!wideScreen()) return;
+    tip.dataset.from = btnId;
+    showTip(b, getText());
+  });
+  b.addEventListener("pointerleave", () => {
+    if (!wideScreen()) return;
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(hideTip, 500);
+  });
+}
+
+/* ---------- first-run tour ---------- */
+
+function showTour(step) {
+  tourStep = Math.max(0, Math.min(step, t("tour").length - 1));
+  const [title, body] = t("tour")[tourStep];
+  $("tourTitle").textContent = title;
+  $("tourText").textContent = body;
+  $("tourStep").textContent = (tourStep + 1) + " / " + t("tour").length;
+  $("tourPrev").disabled = tourStep === 0;
+  $("tourNext").textContent = tourStep === t("tour").length - 1 ? t("tourDone") : t("tourNext");
+  $("tour").hidden = false;
+}
+
+function closeTour() {
+  $("tour").hidden = true;
+  try { localStorage.setItem("ckm_tour", "done"); } catch (e) {}
 }
 
 /* ---------- UI wiring ---------- */
@@ -958,13 +1077,11 @@ function renderLegend() {
   ).join("");
 }
 
-function updateInfo() {
-  const ui = t("usulInfo")[state.usul] || "";
-  const mi = t("makamInfo")[state.makam] || "";
-  $("usulHelp").title = ui;
-  $("makamHelp").title = mi;
-  $("usulInfo").textContent = ui;
-  $("makamInfo").textContent = mi;
+function setCollapsed(on) {
+  $("drumBody").hidden = on;
+  $("collapseBtn").textContent = on ? t("expand") : t("collapse");
+  $("collapseBtn").setAttribute("aria-expanded", String(!on));
+  try { localStorage.setItem("ckm_drums", on ? "hidden" : "shown"); } catch (e) {}
 }
 
 function applyLang() {
@@ -980,15 +1097,17 @@ function applyLang() {
     if (v === state.strings) o.selected = true;
     s.appendChild(o);
   }
-  $("smartHelp").title = t("smartHelp");
-  $("play").textContent = state.playing ? t("stop") : t("play");
   $("rec").textContent = state.recording ? t("recording") : t("record");
+  $("tourSkip").textContent = t("tourSkip");
+  $("tourPrev").textContent = t("tourPrev");
+  setPlayIcon();
+  setCollapsed($("drumBody").hidden);
   fillMakams();
   renderLegend();
   renderGrid();
   renderKeys();
   updateNoteCount();
-  updateInfo();
+  if (!$("tour").hidden) showTour(tourStep);
 }
 
 function applyTheme() {
@@ -1003,7 +1122,12 @@ function init() {
 
   applyTheme();
   initGrid(true);
+  let collapsed = false;
+  try { collapsed = localStorage.getItem("ckm_drums") === "hidden"; } catch (e) {}
+  $("drumBody").hidden = collapsed;
   applyLang();
+
+  const blur = e => e.target.blur();
 
   $("play").addEventListener("click", async () => {
     await initAudio();
@@ -1022,29 +1146,36 @@ function init() {
     lang = lang === "tr" ? "en" : "tr";
     try { localStorage.setItem("ckm_lang", lang); } catch (e) {}
     applyLang();
+    if (midiAccess) bindMidi();
   });
   $("themeSel").addEventListener("change", e => {
     theme = e.target.value;
     try { localStorage.setItem("ckm_theme", theme); } catch (e) {}
     applyTheme();
+    blur(e);
   });
+  $("collapseBtn").addEventListener("click", () => setCollapsed(!$("drumBody").hidden));
   $("usul").addEventListener("change", e => {
     if (state.playing) stopPlayback();
     state.usul = e.target.value;
     initGrid(true);
-    updateInfo();
+    renderRoll();
+    blur(e);
   });
   $("bars").addEventListener("change", e => {
     if (state.playing) stopPlayback();
     state.bars = +e.target.value;
     initGrid(false);
+    renderRoll();
+    blur(e);
   });
-  $("clearDrums").addEventListener("click", () => {
+  $("clearDrums").addEventListener("click", e => {
     for (const row of DRUM_ROWS) state.grid[row].fill(0);
     renderGrid();
+    blur(e);
   });
-  $("makam").addEventListener("change", e => { state.makam = e.target.value; renderKeys(); updateInfo(); });
-  $("shift").addEventListener("change", e => { state.tonic = +e.target.value; renderKeys(); });
+  $("makam").addEventListener("change", e => { state.makam = e.target.value; renderKeys(); blur(e); });
+  $("shift").addEventListener("change", e => { state.tonic = +e.target.value; renderKeys(); blur(e); });
   $("smart").addEventListener("change", e => { state.smart = e.target.checked; renderKeys(); });
   $("strings").addEventListener("change", e => {
     state.strings = e.target.value;
@@ -1053,6 +1184,7 @@ function init() {
       nodes.metal.gain.value = metalOn ? 1 : 0;
       nodes.plastic.gain.value = metalOn ? 0 : 1;
     }
+    blur(e);
   });
   $("volDrums").addEventListener("input", e => {
     state.volDrums = +e.target.value;
@@ -1062,23 +1194,41 @@ function init() {
     state.volBaglama = +e.target.value;
     if (nodes) nodes.bagOut.gain.value = state.volBaglama;
   });
-  $("rec").addEventListener("click", () => toggleRec());
-  $("undo").addEventListener("click", () => { state.notes.pop(); updateNoteCount(); renderRoll(); });
-  $("clearNotes").addEventListener("click", () => { state.notes = []; updateNoteCount(); renderRoll(); });
+  $("rec").addEventListener("click", e => { toggleRec(); blur(e); });
+  $("undo").addEventListener("click", e => { state.notes.pop(); updateNoteCount(); renderRoll(); blur(e); });
+  $("clearNotes").addEventListener("click", e => { state.notes = []; updateNoteCount(); renderRoll(); blur(e); });
   $("midiBtn").addEventListener("click", connectMidi);
-  $("usulHelp").addEventListener("click", () => $("usulInfo").classList.toggle("open"));
-  $("makamHelp").addEventListener("click", () => $("makamInfo").classList.toggle("open"));
-  $("smartHelp").addEventListener("click", () => $("makamInfo").classList.toggle("open"));
+  $("midiSel").addEventListener("change", e => { midiInputId = e.target.value; bindMidi(); blur(e); });
+
+  wireHelp("usulHelp", () => t("usulInfo")[state.usul]);
+  wireHelp("makamHelp", () => t("makamInfo")[state.makam]);
+  wireHelp("smartHelp", () => t("smartHelp"));
+  wireHelp("gridHelp", () => t("gridHint"));
+  wireHelp("rollHelp", () => t("rollHint"));
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".help") && !e.target.closest("#tip")) hideTip();
+  });
+
   $("saveBtn").addEventListener("click", saveProject);
   $("loadBtn").addEventListener("click", () => $("loadFile").click());
   $("loadFile").addEventListener("change", e => { if (e.target.files[0]) loadProject(e.target.files[0]); });
   document.querySelectorAll("[data-export]").forEach(b =>
     b.addEventListener("click", () => doExport(b.dataset.export)));
 
+  $("tourNext").addEventListener("click", () =>
+    tourStep === t("tour").length - 1 ? closeTour() : showTour(tourStep + 1));
+  $("tourPrev").addEventListener("click", () => showTour(tourStep - 1));
+  $("tourSkip").addEventListener("click", closeTour);
+  $("helpBtn").addEventListener("click", () => showTour(0));
+
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   let rt;
   window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderKeys, 200); });
+
+  let seen = false;
+  try { seen = localStorage.getItem("ckm_tour") === "done"; } catch (e) {}
+  if (!seen) showTour(0);
 }
 
 init();

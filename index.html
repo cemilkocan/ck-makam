@@ -6,18 +6,19 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <header class="top">
   <img src="assets/logo.svg" alt="CK Makam" class="logo">
   <div class="transport">
-    <button id="play" class="big">Çal</button>
+    <button id="play" class="big" title="Çal"></button>
     <label class="tempo">BPM <input id="bpm" type="number" min="60" max="180" value="100"></label>
     <input id="bpmRange" type="range" min="60" max="180" value="100" aria-label="Tempo">
     <label><span data-i18n="swing">Salınım</span> <input id="swing" type="range" min="0" max="0.6" step="0.01" value="0"></label>
     <label><span data-i18n="theme">Tema</span> <select id="themeSel"></select></label>
     <button id="lang" class="ghost" title="Language">EN</button>
+    <button id="helpBtn" class="ghost" title="?">?</button>
   </div>
 </header>
 
@@ -27,44 +28,53 @@
   <section class="panel">
     <div class="panel-head">
       <h2>Darbuka</h2>
+      <button id="collapseBtn" class="ghost small" aria-expanded="true" data-i18n="collapse">Gizle</button>
       <label><span data-i18n="usul">Usul</span> <select id="usul"></select></label>
-      <button id="usulHelp" class="help">?</button>
+      <button id="usulHelp" class="help" aria-label="?">?</button>
       <label><span data-i18n="bars">Ölçü</span> <select id="bars"><option>1</option><option selected>2</option><option>4</option></select></label>
       <button id="clearDrums" class="ghost" data-i18n="clear">Temizle</button>
+      <button id="gridHelp" class="help" aria-label="?">?</button>
       <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volDrums" min="0" max="1.2" step="0.01" value="0.9"></label>
     </div>
-    <p id="usulInfo" class="info"></p>
-    <div id="legend" class="legend"></div>
-    <div id="grid" class="grid"></div>
+    <div id="drumBody">
+      <div id="legend" class="legend"></div>
+      <div id="grid" class="grid"></div>
+    </div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
       <h2>Bağlama</h2>
       <label><span data-i18n="makam">Makam</span> <select id="makam"></select></label>
-      <button id="makamHelp" class="help">?</button>
+      <button id="makamHelp" class="help" aria-label="?">?</button>
       <label><span data-i18n="tonic">Karar</span> <select id="shift"></select></label>
       <label><span data-i18n="strings">Tel</span> <select id="strings"></select></label>
       <label><input type="checkbox" id="smart" checked> <span data-i18n="smart">Akıllı dizi</span></label>
-      <button id="smartHelp" class="help">?</button>
+      <button id="smartHelp" class="help" aria-label="?">?</button>
       <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volBaglama" min="0" max="1.2" step="0.01" value="0.9"></label>
     </div>
-    <p id="makamInfo" class="info"></p>
+
     <div class="rec-row">
       <button id="rec" class="rec" data-i18n="record">Kayıt</button>
       <label><input type="checkbox" id="quantize" checked> <span data-i18n="quantize">Gride yapış</span></label>
       <button id="undo" class="ghost" data-i18n="undo">Geri al</button>
       <button id="clearNotes" class="ghost" data-i18n="clear">Temizle</button>
+      <button id="rollHelp" class="help" aria-label="?">?</button>
       <span id="noteCount" class="muted"></span>
       <button id="midiBtn" class="ghost" data-i18n="midi">MIDI bağla</button>
+      <select id="midiSel" hidden></select>
       <span id="midiStatus" class="muted"></span>
     </div>
-    <p class="muted" data-i18n="rollHint"></p>
-    <div class="rollwrap">
-      <div id="rollInner" class="rollinner">
-        <div id="roll" class="roll"></div>
-        <div id="piano" class="piano"></div>
+
+    <div id="rollwrap" class="rollwrap">
+      <div class="rollgrid">
+        <div id="keystrip" class="keystrip"></div>
+        <div id="rollarea" class="rollarea"></div>
       </div>
+    </div>
+
+    <div class="pianowrap">
+      <div id="piano" class="piano"></div>
     </div>
     <p id="kbHint" class="muted kbhint"></p>
   </section>
@@ -95,6 +105,22 @@
   <p class="muted" data-i18n="tagline">Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.</p>
 </footer>
 
-<script src="app.js?v=6"></script>
+<div id="tip" class="tip" hidden></div>
+
+<div id="tour" class="tour" hidden>
+  <div class="tourbox" role="dialog" aria-modal="true">
+    <h3 id="tourTitle"></h3>
+    <p id="tourText"></p>
+    <div class="tourfoot">
+      <span id="tourStep" class="muted"></span>
+      <span class="spacer"></span>
+      <button id="tourSkip" class="ghost">Atla</button>
+      <button id="tourPrev" class="ghost">Geri</button>
+      <button id="tourNext" class="big2">İleri</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js?v=7"></script>
 </body>
 </html>
