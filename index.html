@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
 <header class="top">
@@ -56,7 +56,7 @@
       <label><span data-i18n="makam">Makam</span> <select id="makam"></select></label>
       <button id="makamHelp" class="help" aria-label="?">?</button>
       <label><span data-i18n="tonic">Karar</span> <select id="shift"></select></label>
-      <label><span data-i18n="strings">Tel</span> <select id="strings"></select></label>
+      <label><span id="toneLabel">Tel</span> <select id="toneSel"></select></label>
       <label><input type="checkbox" id="smart" checked> <span data-i18n="smart">Akıllı dizi</span></label>
       <button id="smartHelp" class="help" aria-label="?">?</button>
       <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volBaglama" min="0" max="1.2" step="0.01" value="0.9"></label>
@@ -214,6 +214,6 @@
 </div>
 
 <script src="demos.js?v=4"></script>
-<script src="app.js?v=23"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>

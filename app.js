@@ -139,6 +139,8 @@ const I18N = {
     },
     wheelNote: "Dikkat: Camelot, Batı'nın 12 eşit aralıklı sistemine göre kuruludur. Makamın koma perdeleriyle matematiği farklıdır, bu tekerlek komalı geçişleri birebir karşılamaz. Yaklaşık bir pusula olarak kullan.",
     bpmLbl: "BPM",
+    ud: "Ud", keman: "Keman", plectrum: "Mızrap", timbre: "Tını", breath: "Nefes", bow: "Yay",
+    soft: "Yumuşak", hard: "Sert", warm: "Tok", bright: "Parlak", little: "Az", much: "Çok",
     rhythm: "Ritim", inst: "Çalgı", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
     upload: "Müzik yükle", toNotes: "Notaya çevir", analysing: "Melodi çözülüyor...",
     notesFound: "nota çıkarıldı", noMelody: "Tek sesli bir melodi bulunamadı. Mırıldanma ya da tek çalgı kaydı en iyi sonucu verir.",
@@ -247,6 +249,8 @@ const I18N = {
     },
     wheelNote: "Note: Camelot is built on the West's 12 equal divisions. Makam comma pitches follow different arithmetic, so this wheel does not map comma-based transitions one to one. Use it as a rough compass.",
     bpmLbl: "BPM",
+    ud: "Ud", keman: "Violin", plectrum: "Plectrum", timbre: "Timbre", breath: "Breath", bow: "Bow",
+    soft: "Soft", hard: "Hard", warm: "Warm", bright: "Bright", little: "Light", much: "Full",
     rhythm: "Rhythm", inst: "Instrument", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
     upload: "Load audio", toNotes: "Find the melody", analysing: "Reading the melody...",
     notesFound: "notes found", noMelody: "No single-voice melody found. Humming or one instrument works best.",
@@ -315,7 +319,7 @@ const state = {
   voice: null, voiceOffsetQ: 0, volVoice: 1.0, fileBuf: null,
   fx: { reverb: 0, echo: 0, chorus: 0, drive: 0, bass: 0, treble: 0, comp: false, phone: false },
   playing: false, recording: false,
-  makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal", inst: "baglama",
+  makam: "Hicaz", tonic: 220.0, smart: true, inst: "baglama", toneOpt: "metal",
   volDrums: 0.9, volBaglama: 0.9
 };
 
@@ -440,9 +444,9 @@ function buildGraph(ac) {
   const plastic = ac.createGain();
   bagIn.connect(lp1).connect(lp2).connect(dip).connect(low).connect(makeup).connect(plastic).connect(bagOut);
 
-  const metalOn = state.strings === "metal";
-  metal.gain.value = metalOn ? 1 : 0;
-  plastic.gain.value = metalOn ? 0 : 1;
+  const tv = toneValue();
+  metal.gain.value = tv;
+  plastic.gain.value = 1 - tv;
 
   // voice chain: tone, colour, dynamics, then three parallel sends
   const fx = state.fx;
@@ -603,57 +607,118 @@ function playNote(ac, g, freq, time, vel = 0.9) {
   track(ac, src);
 }
 
-/* Kanun and ney have no CC0 single-note recordings worth using, so they are
-   synthesised here: the kanun as detuned plucked strings, the ney as a breathy
-   pipe. Rendered once at load into buffers, then pitch-shifted like a sample. */
+/* Kanun, ud, ney and keman have no CC0 single-note recordings worth using, so
+   they are synthesised: plucked strings by Karplus-Strong with a real pick
+   transient, the ney as a breathy pipe, the keman as a bowed stack. Rendered
+   once at load into buffers, then pitch-shifted like any sample. */
 const SYNTH_REFS = [110, 220, 440];
 
-function synthKanun(ac, f0) {
-  const sr = ac.sampleRate, len = Math.floor(sr * 1.8);
+function plucked(ac, f0, opt) {
+  const sr = ac.sampleRate, len = Math.floor(sr * opt.seconds);
   const buf = ac.createBuffer(1, len, sr);
   const out = buf.getChannelData(0);
-  for (const det of [-4, 0, 5]) {                       // three courses, lightly detuned
-    const f = f0 * Math.pow(2, det / 1200);
+  for (const cents of opt.detune) {
+    const f = f0 * Math.pow(2, cents / 1200);
     const n = Math.max(2, Math.round(sr / f));
     const ring = new Float32Array(n);
     for (let i = 0; i < n; i++) ring[i] = Math.random() * 2 - 1;
-    let idx = 0, prev = 0;
+    // a short brightness ramp at the start stands in for the plectrum
+    let idx = 0, prev = 0, lp = 0;
     for (let i = 0; i < len; i++) {
       const cur = ring[idx];
-      const v = (cur + prev) * 0.5 * 0.9985;            // bright, slow decay
-      ring[idx] = v;
+      ring[idx] = (cur + prev) * 0.5 * opt.loop;
       prev = cur;
       idx = (idx + 1) % n;
-      out[i] += cur * Math.exp(-i / sr * 1.1) / 3;
+      lp = lp + (cur - lp) * opt.damp;                  // one-pole, darkens the tail
+      out[i] += (opt.body * lp + (1 - opt.body) * cur) *
+                Math.exp(-i / sr * opt.decay) / opt.detune.length;
     }
   }
-  const atk = Math.floor(sr * 0.002);
+  const pick = Math.floor(sr * 0.004);
+  for (let i = 0; i < pick; i++)
+    out[i] += (Math.random() * 2 - 1) * opt.pick * (1 - i / pick);
+  const atk = Math.floor(sr * 0.0015);
   for (let i = 0; i < atk; i++) out[i] *= i / atk;
+  let mx = 0;
+  for (let i = 0; i < len; i++) mx = Math.max(mx, Math.abs(out[i]));
+  if (mx > 0) for (let i = 0; i < len; i++) out[i] /= mx;
   return buf;
+}
+
+function synthKanun(ac, f0) {
+  // three strings to a course, barely apart, bright but with a woody body
+  return plucked(ac, f0, { seconds: 1.5, detune: [-2.5, 0, 2.5], loop: 0.996,
+                           damp: 0.75, body: 0.45, decay: 2.6, pick: 0.35 });
+}
+
+function synthUd(ac, f0) {
+  // gut strings, darker and shorter, two to a course
+  return plucked(ac, f0, { seconds: 1.3, detune: [-3, 3], loop: 0.991,
+                           damp: 0.3, body: 0.8, decay: 3.4, pick: 0.22 });
 }
 
 function synthNey(ac, f0) {
-  const sr = ac.sampleRate, len = Math.floor(sr * 2.2);
+  const sr = ac.sampleRate, len = Math.floor(sr * 1.25);
   const buf = ac.createBuffer(1, len, sr);
   const out = buf.getChannelData(0);
-  let lp = 0;
+  let bp1 = 0, bp2 = 0;
   for (let i = 0; i < len; i++) {
     const t2 = i / sr;
-    const env = Math.min(1, t2 / 0.09) * Math.exp(-t2 * 0.55);
-    const vib = 1 + 0.006 * Math.sin(2 * Math.PI * 5.2 * t2) * Math.min(1, t2 / 0.4);
+    // soft attack, a held middle, then it runs out of breath
+    const env = Math.min(1, t2 / 0.075) * Math.min(1, Math.max(0, (1.25 - t2) / 0.35));
+    const vib = 1 + 0.0045 * Math.sin(2 * Math.PI * 4.8 * t2) * Math.min(1, Math.max(0, (t2 - 0.25) / 0.4));
     const ph = 2 * Math.PI * f0 * vib * t2;
-    let v = Math.sin(ph) + 0.34 * Math.sin(2 * ph) + 0.12 * Math.sin(3 * ph) + 0.05 * Math.sin(4 * ph);
-    lp = lp * 0.72 + (Math.random() * 2 - 1) * 0.28;    // breath
-    out[i] = (v * 0.42 + lp * 0.3 * Math.min(1, t2 / 0.05)) * env;
+    const tone = Math.sin(ph) + 0.22 * Math.sin(2 * ph) + 0.07 * Math.sin(3 * ph);
+    // breath: noise pushed into a band around the mouthpiece region
+    const n = Math.random() * 2 - 1;
+    bp1 += (n - bp1) * 0.28;
+    bp2 += (bp1 - bp2) * 0.06;
+    const air = (bp1 - bp2) * (1.1 + 0.5 * Math.sin(2 * Math.PI * 7 * t2));
+    out[i] = (tone * 0.5 + air * 0.26) * env;
   }
   return buf;
 }
 
-function buildSynths(ac) {
-  for (const f of SYNTH_REFS) {
-    buffers["kanun_" + f] = synthKanun(ac, f);
-    buffers["ney_" + f] = synthNey(ac, f);
+function synthKeman(ac, f0) {
+  const sr = ac.sampleRate, len = Math.floor(sr * 1.6);
+  const buf = ac.createBuffer(1, len, sr);
+  const out = buf.getChannelData(0);
+  let bow = 0;
+  for (let i = 0; i < len; i++) {
+    const t2 = i / sr;
+    const env = Math.min(1, t2 / 0.11) * Math.min(1, Math.max(0, (1.6 - t2) / 0.45));
+    const vib = 1 + 0.006 * Math.sin(2 * Math.PI * 5.4 * t2) * Math.min(1, Math.max(0, (t2 - 0.2) / 0.35));
+    const ph = 2 * Math.PI * f0 * vib * t2;
+    let v = 0;
+    for (let h = 1; h <= 8; h++) v += Math.sin(ph * h) / h;   // sawtooth, like a bow
+    bow += ((Math.random() * 2 - 1) - bow) * 0.4;             // bow noise
+    out[i] = (v * 0.3 + bow * 0.05) * env;
   }
+  return buf;
+}
+
+const SYNTHS = { kanun: synthKanun, ud: synthUd, ney: synthNey, keman: synthKeman };
+
+function buildSynths(ac) {
+  for (const [name, fn] of Object.entries(SYNTHS))
+    for (const f of SYNTH_REFS) buffers[name + "_" + f] = fn(ac, f);
+}
+
+/* Each instrument brings its own control: strings for the bağlama, plectrum for
+   the ud, timbre for the kanun, breath for the ney, bow for the keman. The value
+   is how much of the bright path is used against the darkened one. */
+const INSTRUMENTS = {
+  baglama: { tone: "strings", opts: [["metal", 1], ["plastic", 0]] },
+  ud:      { tone: "plectrum", opts: [["soft", 0.25], ["hard", 0.6]] },
+  kanun:   { tone: "timbre", opts: [["warm", 0.45], ["bright", 0.9]] },
+  ney:     { tone: "breath", opts: [["little", 0.5], ["much", 0.85]] },
+  keman:   { tone: "bow", opts: [["soft", 0.4], ["bright", 0.8]] }
+};
+
+function toneValue() {
+  const def = INSTRUMENTS[state.inst];
+  const hit = def.opts.find(o => o[0] === state.toneOpt);
+  return hit ? hit[1] : def.opts[0][1];
 }
 
 const VELS = [0, 0.8, 1.0, 0.5];
@@ -1084,13 +1149,14 @@ function toggleRec(force) {
   $("rec").classList.toggle("armed", state.recording);
   const inst = $("instSel");
   inst.innerHTML = "";
-  for (const v of ["baglama", "kanun", "ney"]) {
+  for (const v of Object.keys(INSTRUMENTS)) {
     const o = document.createElement("option");
     o.value = v; o.textContent = t(v);
     if (v === state.inst) o.selected = true;
     inst.appendChild(o);
   }
   $("instTitle").textContent = t(state.inst);
+  fillTone();
   $("rec").textContent = state.recording ? t("recording") : t("record");
 }
 
@@ -1891,7 +1957,7 @@ function encodeState() {
     Object.keys(USULS).indexOf(state.usul), state.bars, Math.round(state.swing * 100),
     Object.keys(MAKAMS).indexOf(state.makam),
     Math.max(0, TONICS.findIndex(x => Math.abs(x[1] - state.tonic) < 0.01)),
-    (state.smart ? 1 : 0) | (state.strings === "plastic" ? 2 : 0), steps);
+    (state.smart ? 1 : 0) | (state.toneOpt === INSTRUMENTS[state.inst].opts[1][0] ? 2 : 0), steps);
   let mask = 0;
   DRUM_ROWS.forEach((r, i) => { if (state.muted.has(r)) mask |= 1 << i; });
   b.push(mask & 255, (mask >> 8) & 255);
@@ -1963,12 +2029,7 @@ function syncControls() {
   $("makam").value = state.makam;
   $("shift").value = state.tonic;
   $("smart").checked = state.smart;
-  $("strings").value = state.strings;
-  if (nodes) {
-    const metalOn = state.strings === "metal";
-    nodes.metal.gain.value = metalOn ? 1 : 0;
-    nodes.plastic.gain.value = metalOn ? 0 : 1;
-  }
+  fillTone();
   renderGrid();
   renderKeys();
   updateWheelText();
@@ -2283,7 +2344,8 @@ async function exportVideo() {
 function saveProject() {
   const data = {
     v: 1, bpm: state.bpm, usul: state.usul, bars: state.bars, swing: state.swing,
-    makam: state.makam, tonic: state.tonic, smart: state.smart, strings: state.strings,
+    makam: state.makam, tonic: state.tonic, smart: state.smart,
+    inst: state.inst, toneOpt: state.toneOpt,
     notes: state.notes, muted: [...state.muted],
     voiceOffsetQ: state.voiceOffsetQ, fx: state.fx,
     grid: Object.fromEntries(DRUM_ROWS.map(r => [r, Array.from(state.grid[r])]))
@@ -2305,7 +2367,8 @@ function loadProject(file) {
       state.makam = MAKAMS[d.makam] ? d.makam : state.makam;
       state.tonic = d.tonic || 220;
       state.smart = !!d.smart;
-      state.strings = d.strings || "metal";
+      state.inst = INSTRUMENTS[d.inst] ? d.inst : "baglama";
+      state.toneOpt = d.toneOpt || INSTRUMENTS[state.inst].opts[0][0];
       state.notes = (Array.isArray(d.notes) ? d.notes : []).map(n => ({
         q: n.q !== undefined ? n.q : secToQ(n.t || 0),
         lenQ: n.lenQ !== undefined ? n.lenQ : (n.len !== undefined ? secToQ(n.len) : stepQ()),
@@ -2325,7 +2388,6 @@ function loadProject(file) {
       $("makam").value = state.makam;
       $("shift").value = state.tonic;
       $("smart").checked = state.smart;
-      $("strings").value = state.strings;
       if (nodes) {
         const metalOn = state.strings === "metal";
         nodes.metal.gain.value = metalOn ? 1 : 0;
@@ -2485,28 +2547,41 @@ function setWheel(on) {
   if (on) renderWheel();
 }
 
+// The one tone control changes its name and its choices with the instrument.
+function fillTone() {
+  const def = INSTRUMENTS[state.inst];
+  if (!def.opts.some(o => o[0] === state.toneOpt)) state.toneOpt = def.opts[0][0];
+  $("toneLabel").textContent = t(def.tone);
+  const sel = $("toneSel");
+  sel.innerHTML = "";
+  for (const [val] of def.opts) {
+    const o = document.createElement("option");
+    o.value = val; o.textContent = t(val);
+    if (val === state.toneOpt) o.selected = true;
+    sel.appendChild(o);
+  }
+  if (nodes) {
+    const tv = toneValue();
+    nodes.metal.gain.value = tv;
+    nodes.plastic.gain.value = 1 - tv;
+  }
+}
+
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
   $("lang").textContent = lang === "tr" ? "EN" : "TR";
-  const s = $("strings");
-  s.innerHTML = "";
-  for (const v of ["metal", "plastic"]) {
-    const o = document.createElement("option");
-    o.value = v; o.textContent = t(v);
-    if (v === state.strings) o.selected = true;
-    s.appendChild(o);
-  }
   const inst = $("instSel");
   inst.innerHTML = "";
-  for (const v of ["baglama", "kanun", "ney"]) {
+  for (const v of Object.keys(INSTRUMENTS)) {
     const o = document.createElement("option");
     o.value = v; o.textContent = t(v);
     if (v === state.inst) o.selected = true;
     inst.appendChild(o);
   }
   $("instTitle").textContent = t(state.inst);
+  fillTone();
   $("rec").textContent = state.recording ? t("recording") : t("record");
   for (const k of ["learnKomaT", "learnCamelotT", "learnKoma", "learnCamelot"])
     $(k).textContent = t(k);
@@ -2601,15 +2676,6 @@ function init() {
   $("makam").addEventListener("change", e => { state.makam = e.target.value; renderKeys(); updateWheelText(); blur(e); });
   $("shift").addEventListener("change", e => { state.tonic = +e.target.value; renderKeys(); updateWheelText(); blur(e); });
   $("smart").addEventListener("change", e => { state.smart = e.target.checked; renderKeys(); });
-  $("strings").addEventListener("change", e => {
-    state.strings = e.target.value;
-    if (nodes) {
-      const metalOn = state.strings === "metal";
-      nodes.metal.gain.value = metalOn ? 1 : 0;
-      nodes.plastic.gain.value = metalOn ? 0 : 1;
-    }
-    blur(e);
-  });
   $("volDrums").addEventListener("input", e => {
     state.volDrums = +e.target.value;
     if (nodes) nodes.drums.gain.value = state.volDrums;
@@ -2653,6 +2719,14 @@ function init() {
   $("instSel").addEventListener("change", e => {
     state.inst = e.target.value;
     $("instTitle").textContent = t(state.inst);
+    fillTone();
+    resyncTransport();                 // swap takes effect at once
+    blur(e);
+  });
+  $("toneSel").addEventListener("change", e => {
+    state.toneOpt = e.target.value;
+    fillTone();
+    resyncTransport();
     blur(e);
   });
   $("pickFile").addEventListener("click", () => $("audioFile").click());
