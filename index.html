@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=22">
+<link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
 <header class="top">
@@ -91,9 +91,6 @@
     <div class="panel-head">
       <h2 data-i18n="voice">Ses</h2>
       <button id="micBtn" data-i18n="mic">Sesini kaydet</button>
-      <button id="uploadBtn" class="ghost" data-i18n="upload">Müzik yükle</button>
-      <input type="file" id="audioFile" accept="audio/*" hidden>
-      <button id="uploadHelp" class="help" aria-label="?">?</button>
       <button id="toNotes" class="ghost" data-i18n="toNotes" hidden>Notaya çevir</button>
       <button id="micClear" class="ghost" data-i18n="micClear" hidden>Sesi sil</button>
       <label hidden><span data-i18n="micOffset">Kaydırma</span>
@@ -120,10 +117,27 @@
     </div>
     <canvas id="wave" class="wave" hidden></canvas>
     <p class="muted" data-i18n="micHint"></p>
-    <p class="muted" data-i18n="uploadHint"></p>
     <p id="micStatus" class="muted"></p>
   </section>
 
+  <section class="panel">
+    <div class="panel-head">
+      <h2 data-i18n="fileTitle">Dosyadan çıkar</h2>
+      <button id="pickFile" data-i18n="pickFile">Dosya seç</button>
+      <input type="file" id="audioFile" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.opus,.ogg,.aac,.flac,.mp4,.webm" hidden>
+      <button id="uploadHelp" class="help" aria-label="?">?</button>
+      <span id="fileStatus" class="muted"></span>
+    </div>
+    <div id="fileTools" hidden>
+      <canvas id="fileWave" class="wave"></canvas>
+      <div class="rec-row">
+        <button id="getRhythm" data-i18n="getRhythm">Ritmi çıkar</button>
+        <button id="getMelody" data-i18n="getMelody">Melodiyi çıkar</button>
+        <button id="asLayer" class="ghost" data-i18n="asLayer">Katman yap</button>
+      </div>
+    </div>
+    <p class="muted" data-i18n="fileHint"></p>
+  </section>
   <section class="panel">
     <div class="panel-head">
       <button id="wheelToggle" class="arrow" aria-expanded="false">&#9656;</button>
@@ -200,6 +214,6 @@
 </div>
 
 <script src="demos.js?v=4"></script>
-<script src="app.js?v=22"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>

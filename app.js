@@ -145,6 +145,10 @@ const I18N = {
     fileLoaded: "Dosya yüklendi,", fileBad: "Bu dosya okunamadı.",
     uploadHint: "Kendi mp3 ya da wav dosyanı yükleyip katman olarak kullanabilirsin. Notaya çevir, tek sesli kayıtlarda çalışır: mırıldanma, tek bir çalgı ya da solo vokal. Karışık bir şarkıyı enstrümanlarına ayırmaz, onu tarayıcıda yapmak mümkün değil.",
     uploadHelp: "Notaya çevir tek sesli kayıtlarda çalışır, yani aynı anda tek bir perde duyulan kayıtlarda.\n\nEn iyi sonucu verenler:\n• Kendi mırıldanman ya da ıslığın. Telefonla sessiz bir odada kaydet, on on beş saniye yeter.\n• Tek bir çalgının solo kaydı: bağlama, ney, keman, flüt, piyano tek elle.\n• Araya çalgı karışmayan solo vokal.\n\nÇalışmayan: tam bir şarkı kaydı. Davul, bas ve birkaç çalgı aynı anda çalarken hangi sesin melodi olduğu ayırt edilemez, ortaya rastgele notalar çıkar. Karışık bir kaydı enstrümanlarına ayırmak ayrı bir iştir ve tarayıcıda yapılamaz.\n\nKayıt ipuçları: arkada televizyon, klima ya da sokak sesi olmasın. Mikrofona çok yaklaşma, patlama sesleri perdeyi bozar. Tempoyu önce uygulamada ayarla; loop çalarken mırıldanırsan notalar doğru yere oturur. mp3, wav, m4a ve ogg okunur.\n\nSon olarak: başkasının şarkısını indirip kullanmak hem eser sahibinin hakkına girer hem de çoğu sitenin kurallarına aykırıdır. Kendi sesin ya da kendi çaldığın kayıt hem en doğru sonucu verir hem de sorunsuzdur. Hazır ses arıyorsan Freesound'un CC0 bölümüne bak.",
+    fileTitle: "Dosyadan çıkar", pickFile: "Dosya seç", getRhythm: "Ritmi çıkar",
+    getMelody: "Melodiyi çıkar", asLayer: "Katman yap", reading: "Dosya okunuyor...",
+    hitsFound: "vuruş yerleşti", noRhythm: "Belirgin bir ritim bulunamadı.",
+    fileHint: "mp3, wav, m4a, opus, ogg, aac, flac ve mp4 okunur. Ritmi çıkar tam şarkılarda da çalışır: tempoyu bulur, vuruşları bandlarına göre düm, tek ve tek tiz satırlarına dağıtır. Melodiyi çıkar yalnızca tek sesli kayıtlarda işe yarar.",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
     micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko", fxChorus: "Koro", fxDrive: "Bozulma",
@@ -249,6 +253,10 @@ const I18N = {
     fileLoaded: "File loaded,", fileBad: "That file could not be read.",
     uploadHint: "Load your own mp3 or wav and use it as a layer. Find the melody works on single-voice material: humming, one instrument, or a solo vocal. It does not split a finished song into its instruments, which a browser cannot do.",
     uploadHelp: "Find the melody works on single-voice material, where only one pitch sounds at a time.\n\nWhat works best:\n• Your own humming or whistling. A phone in a quiet room, ten or fifteen seconds is plenty.\n• One instrument on its own: bağlama, ney, violin, flute, piano with one hand.\n• A solo vocal with no instruments behind it.\n\nWhat does not work: a finished song. With drums, bass and several instruments at once there is no way to tell which pitch is the melody, and you get nonsense notes. Splitting a mixed recording into its instruments is a different job and a browser cannot do it.\n\nRecording tips: no television, air conditioning or street noise behind you. Do not crowd the mic, plosives ruin the pitch. Set the tempo first; if you hum while the loop plays, the notes land in the right place. mp3, wav, m4a and ogg are read.\n\nOne last thing: taking somebody else's song and uploading it goes against the rights of whoever made it and against most sites' terms. Your own voice or your own playing gives the better result anyway. For ready-made audio, look at the CC0 section of Freesound.",
+    fileTitle: "Take it from a file", pickFile: "Choose a file", getRhythm: "Find the rhythm",
+    getMelody: "Find the melody", asLayer: "Use as a layer", reading: "Reading the file...",
+    hitsFound: "hits placed", noRhythm: "No clear rhythm found.",
+    fileHint: "mp3, wav, m4a, opus, ogg, aac, flac and mp4 are read. Find the rhythm works on full songs: it finds the tempo and sorts the hits into the dum, tek and tek hi rows by frequency band. Find the melody only works on single-voice material.",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
     micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo", fxChorus: "Chorus", fxDrive: "Drive",
@@ -304,7 +312,7 @@ const THEMES = { toprak: "Toprak", gece: "Gece", orman: "Orman", gul: "Gül", ko
 const state = {
   bpm: 100, usul: "Maqsum (4/4)", bars: 2, swing: 0,
   grid: {}, notes: [], muted: new Set(),
-  voice: null, voiceOffsetQ: 0, volVoice: 1.0,
+  voice: null, voiceOffsetQ: 0, volVoice: 1.0, fileBuf: null,
   fx: { reverb: 0, echo: 0, chorus: 0, drive: 0, bass: 0, treble: 0, comp: false, phone: false },
   playing: false, recording: false,
   makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal", inst: "baglama",
@@ -1439,22 +1447,60 @@ function drawWave() {
 /* ---------- audio upload and melody detection ---------- */
 
 async function loadAudioFile(file) {
-  const st = $("micStatus");
+  const st = $("fileStatus");
+  st.textContent = t("reading");
   await initAudio();
   try {
-    state.voice = await ctx.decodeAudioData(await file.arrayBuffer());
-    voiceBaseQ = 0;
-    state.voiceOffsetQ = 0;
-    $("micOffset").value = 0;
-    $("micClear").hidden = false;
-    $("micOffset").parentElement.hidden = false;
-    $("fxRow").hidden = false;
-    $("toNotes").hidden = false;
-    drawWave();
-    st.textContent = t("fileLoaded") + " " + state.voice.duration.toFixed(1) + "s";
+    state.fileBuf = await ctx.decodeAudioData(await file.arrayBuffer());
+    $("fileTools").hidden = false;
+    drawFileWave();
+    st.textContent = file.name + " - " + state.fileBuf.duration.toFixed(1) + "s";
   } catch (e) {
+    state.fileBuf = null;
+    $("fileTools").hidden = true;
     st.textContent = t("fileBad");
   }
+}
+
+function drawFileWave() {
+  const c = $("fileWave");
+  if (!c) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(200, c.clientWidth), h = 72;
+  c.width = w * dpr; c.height = h * dpr;
+  const cx = c.getContext("2d");
+  cx.scale(dpr, dpr);
+  cx.clearRect(0, 0, w, h);
+  if (!state.fileBuf) { c.hidden = true; return; }
+  c.hidden = false;
+  const d = state.fileBuf.getChannelData(0);
+  const step = Math.max(1, Math.floor(d.length / w));
+  cx.fillStyle = cssVar("--accent2");
+  for (let x = 0; x < w; x++) {
+    let lo = 1, hi = -1;
+    for (let i = 0; i < step; i += 3) {
+      const v = d[x * step + i] || 0;
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+    const y1 = (1 - hi) * h / 2, y2 = (1 - lo) * h / 2;
+    cx.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+  }
+}
+
+// use the file as a layer, the same way a mic take is used
+function fileAsLayer() {
+  if (!state.fileBuf) return;
+  state.voice = state.fileBuf;
+  voiceBaseQ = 0;
+  state.voiceOffsetQ = 0;
+  $("micOffset").value = 0;
+  $("micClear").hidden = false;
+  $("micOffset").parentElement.hidden = false;
+  $("fxRow").hidden = false;
+  $("toNotes").hidden = false;
+  drawWave();
+  $("micStatus").textContent = t("micSaved") + " " + state.voice.duration.toFixed(1) + "s";
 }
 
 // YIN pitch estimate for one window. Monophonic material only.
@@ -1485,12 +1531,13 @@ function yinPitch(d, start, win, sr) {
   return sr / (tau + shift);
 }
 
-function melodyToNotes() {
-  if (!state.voice) return;
-  const st = $("micStatus");
+function melodyToNotes(fromFile) {
+  const buf = fromFile ? state.fileBuf : state.voice;
+  if (!buf) return;
+  const st = $(fromFile ? "fileStatus" : "micStatus");
   st.textContent = t("analysing");
   setTimeout(() => {
-    const sr = state.voice.sampleRate, d = state.voice.getChannelData(0);
+    const sr = buf.sampleRate, d = buf.getChannelData(0);
     const win = 2048, hop = Math.floor(sr * 0.021);
     const frames = [];
     for (let i = 0; i + win < d.length; i += hop) {
@@ -1517,7 +1564,7 @@ function melodyToNotes() {
     const added = [];
     for (const sg of segs) {
       if (sg.n < minFrames) continue;
-      const tSec = sg.start * hop / sr + qToSec(state.voiceOffsetQ);
+      const tSec = sg.start * hop / sr + (fromFile ? 0 : qToSec(state.voiceOffsetQ));
       let q = secToQ(tSec) % loopQ();
       let lenQ = secToQ(sg.n * hop / sr);
       if ($("quantize").checked) {
@@ -1538,6 +1585,156 @@ function melodyToNotes() {
     updateNoteCount();
     renderRoll();
     st.textContent = added.length ? added.length + " " + t("notesFound") : t("noMelody");
+  }, 30);
+}
+
+/* ---------- file analysis: pull the rhythm out of a recording ---------- */
+
+// Iterative radix-2 FFT, in place on separate real and imaginary arrays.
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      let t = re[i]; re[i] = re[j]; re[j] = t;
+      t = im[i]; im[i] = im[j]; im[j] = t;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const ur = re[i + k], ui = im[i + k];
+        const vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci;
+        const vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+        re[i + k] = ur + vr; im[i + k] = ui + vi;
+        re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+        const ncr = cr * wr - ci * wi;
+        ci = cr * wi + ci * wr; cr = ncr;
+      }
+    }
+  }
+}
+
+function medianOf(arr, from, to) {
+  const tmp = arr.slice(Math.max(0, from), Math.min(arr.length, to));
+  tmp.sort((a, b) => a - b);
+  return tmp[tmp.length >> 1] || 0;
+}
+
+/* Builds a magnitude spectrogram, suppresses the tonal part by taking a median
+   across frequency (the percussive half of an HPSS split), and reads the
+   onsets out of what is left. Analyses the first 30 seconds only. */
+function analyseRhythm(buffer) {
+  const SRA = 22050, WIN = 1024, HOP = 256, BINS = WIN / 2;
+  const src = buffer.getChannelData(0);
+  const ratio = buffer.sampleRate / SRA;
+  const total = Math.floor(Math.min(buffer.duration, 30) * SRA);
+  const d = new Float32Array(total);
+  for (let i = 0; i < total; i++) d[i] = src[Math.floor(i * ratio)] || 0;
+
+  const frames = Math.max(1, Math.floor((d.length - WIN) / HOP));
+  const hann = new Float32Array(WIN);
+  for (let i = 0; i < WIN; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / WIN);
+
+  const mag = [], perc = [];
+  const re = new Float32Array(WIN), im = new Float32Array(WIN);
+  for (let f = 0; f < frames; f++) {
+    const off = f * HOP;
+    for (let i = 0; i < WIN; i++) { re[i] = d[off + i] * hann[i]; im[i] = 0; }
+    fft(re, im);
+    const m = new Float32Array(BINS);
+    for (let k = 0; k < BINS; k++) m[k] = Math.hypot(re[k], im[k]);
+    mag.push(m);
+    // median across frequency keeps transients and flattens held tones
+    const p = new Float32Array(BINS);
+    for (let k = 0; k < BINS; k++) p[k] = Math.min(m[k], medianOf(m, k - 8, k + 9) * 2.2);
+    perc.push(p);
+  }
+
+  // onset envelope from the positive spectral flux of the percussive part
+  const env = new Float32Array(frames);
+  for (let f = 1; f < frames; f++) {
+    let sum = 0;
+    for (let k = 1; k < BINS; k++) {
+      const diff = perc[f][k] - perc[f - 1][k];
+      if (diff > 0) sum += diff;
+    }
+    env[f] = sum;
+  }
+  let mx = 0;
+  for (const v of env) if (v > mx) mx = v;
+  if (mx > 0) for (let i = 0; i < frames; i++) env[i] /= mx;
+
+  // tempo from the autocorrelation of that envelope, inside 60-180 BPM
+  const fps = SRA / HOP;
+  let bestLag = 0, bestVal = 0;
+  for (let lag = Math.floor(fps * 60 / 180); lag <= Math.ceil(fps * 60 / 60); lag++) {
+    let acc = 0;
+    for (let i = 0; i + lag < frames; i++) acc += env[i] * env[i + lag];
+    acc /= (frames - lag) || 1;
+    if (acc > bestVal) { bestVal = acc; bestLag = lag; }
+  }
+  const bpm = bestLag ? Math.max(60, Math.min(180, Math.round(60 * fps / bestLag))) : 100;
+
+  // pick peaks that stand clear of their neighbourhood
+  const onsets = [];
+  for (let f = 2; f < frames - 2; f++) {
+    const v = env[f];
+    if (v < 0.08) continue;
+    if (v <= env[f - 1] || v < env[f + 1]) continue;
+    let local = 0;
+    for (let i = Math.max(0, f - 20); i < Math.min(frames, f + 20); i++) local += env[i];
+    local /= Math.min(frames, f + 20) - Math.max(0, f - 20);
+    if (v < local * 1.6) continue;
+    if (onsets.length && (f - onsets[onsets.length - 1].f) < 4) continue;
+
+    // which band carries the hit decides which drum it becomes
+    const m = mag[f];
+    let lo = 0, mid = 0, hi = 0;
+    for (let k = 1; k < BINS; k++) {
+      const hz = k * SRA / WIN;
+      if (hz < 180) lo += m[k];
+      else if (hz < 1800) mid += m[k];
+      else hi += m[k];
+    }
+    const band = lo >= mid && lo >= hi ? "doum" : hi > mid * 1.25 ? "tekhi" : "tek";
+    onsets.push({ f, t: f * HOP / SRA, band, v });
+  }
+  return { bpm, onsets, duration: d.length / SRA };
+}
+
+function rhythmFromFile() {
+  if (!state.fileBuf) return;
+  const st = $("fileStatus");
+  st.textContent = t("analysing");
+  setTimeout(() => {
+    try {
+      const res = analyseRhythm(state.fileBuf);
+      if (!res.onsets.length) { st.textContent = t("noRhythm"); return; }
+      if (state.playing) stopPlayback();
+      state.bpm = res.bpm;
+      $("bpm").value = $("bpmRange").value = state.bpm;
+
+      for (const row of DRUM_ROWS) state.grid[row].fill(0);
+      const steps = totalSteps(), sd = stepDur();
+      let placed = 0;
+      for (const o of res.onsets) {
+        const step = Math.round(o.t / sd) % steps;
+        if (state.grid[o.band][step]) continue;
+        state.grid[o.band][step] = o.v > 0.45 ? 2 : o.v > 0.18 ? 1 : 3;
+        placed++;
+      }
+      renderGrid();
+      renderRoll();
+      st.textContent = res.bpm + " BPM, " + placed + " " + t("hitsFound");
+    } catch (e) {
+      st.textContent = t("failed") + e.message;
+    }
   }, 30);
 }
 
@@ -2458,9 +2655,12 @@ function init() {
     $("instTitle").textContent = t(state.inst);
     blur(e);
   });
-  $("uploadBtn").addEventListener("click", () => $("audioFile").click());
+  $("pickFile").addEventListener("click", () => $("audioFile").click());
   $("audioFile").addEventListener("change", e => { if (e.target.files[0]) loadAudioFile(e.target.files[0]); });
-  $("toNotes").addEventListener("click", melodyToNotes);
+  $("getRhythm").addEventListener("click", rhythmFromFile);
+  $("getMelody").addEventListener("click", () => melodyToNotes(true));
+  $("asLayer").addEventListener("click", fileAsLayer);
+  $("toNotes").addEventListener("click", () => melodyToNotes(false));
   $("micBtn").addEventListener("click", toggleMic);
   $("micClear").addEventListener("click", clearVoice);
   $("micOffset").addEventListener("input", e => { state.voiceOffsetQ = voiceBaseQ + secToQ(+e.target.value); });
