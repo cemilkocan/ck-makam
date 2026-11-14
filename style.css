@@ -119,7 +119,7 @@ main { max-width: 1380px; margin: 0 auto; padding: 14px 16px; display: grid; gap
 
 /* piano roll: time left to right, pitch top to bottom */
 .rollwrap {
-  overflow: auto; max-height: 270px; border: 1px solid var(--line);
+  overflow: auto; max-height: 360px; border: 1px solid var(--line);
   border-radius: 8px; background: var(--panel2);
 }
 .rollgrid { display: flex; align-items: flex-start; width: max-content; }
@@ -225,7 +225,7 @@ footer summary { cursor: pointer; }
   .cell { flex-basis: 26px; height: 28px; }
   .rowlabel { flex-basis: 68px; font-size: 12px; }
   .vol { margin-left: 0; }
-  .rollwrap { max-height: 210px; }
+  .rollwrap { max-height: 230px; }
   .keystrip { width: 52px; flex-basis: 52px; }
   .piano, .whites, .wkey { height: 112px; }
   .blacks, .bkey { height: 70px; }

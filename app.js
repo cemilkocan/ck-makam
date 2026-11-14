@@ -530,19 +530,36 @@ function paintCell(cell, v) {
 /* ---------- piano roll: time runs left to right, pitch stacked top to bottom ---------- */
 
 const wideScreen = () => window.innerWidth > 760;
-const LANE_H = () => (wideScreen() ? 16 : 14);
-const CELL_W = () => (wideScreen() ? 30 : 26);
-const timeW = () => CELL_W() * totalSteps();
-const laneOf = i => keys.length - 1 - i;              // highest pitch on top
+const LANE_H = () => (wideScreen() ? 17 : 15);
+let cellW = 30;
+const CELL_W = () => cellW;
+const timeW = () => cellW * totalSteps();
 
-function keyIndexAtY(y) {
-  const i = keys.length - 1 - Math.floor(y / LANE_H());
-  return keys[i] ? i : null;
+// With smart scale on, only the makam's own pitches get a lane, so the roll fits
+// on screen and reads cleanly. Off, every semitone gets one.
+let rollKeys = [];
+function buildRollKeys() {
+  rollKeys = state.smart ? keys.filter(k => k.inScale) : keys.slice();
+  if (!rollKeys.length) rollKeys = keys.slice();
+}
+const laneOf = i => rollKeys.length - 1 - i;          // highest pitch on top
+
+function rollIndexForMidi(m) {
+  const exact = rollKeys.findIndex(k => k.midi === m);
+  if (exact >= 0) return exact;
+  let best = 0, bd = 1e9;
+  rollKeys.forEach((k, i) => { const d = Math.abs(k.midi - m); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+
+function laneAtY(y) {
+  const li = Math.floor(y / LANE_H());
+  const i = rollKeys.length - 1 - li;
+  return rollKeys[i] ? i : null;
 }
 
 function placeNote(el, n) {
-  const i = keyIndexByMidi(n.midi);
-  if (i < 0) return;
+  const i = rollIndexForMidi(n.midi);
   el.style.left = (n.t / loopDur()) * timeW() + "px";
   el.style.width = Math.max(7, (n.len / loopDur()) * timeW() - 1) + "px";
   el.style.top = laneOf(i) * LANE_H() + 1 + "px";
@@ -550,24 +567,35 @@ function placeNote(el, n) {
 }
 
 function renderRoll() {
-  const strip = $("keystrip"), area = $("rollarea");
+  const strip = $("keystrip"), area = $("rollarea"), wrap = $("rollwrap");
   if (!strip || !area) return;
-  const lh = LANE_H(), u = usulDef(), h = keys.length * lh;
+  buildRollKeys();
 
+  // Spread the steps across the panel instead of leaving empty space on the right.
+  const stripW = wideScreen() ? 62 : 52;
+  const avail = (wrap.clientWidth || 900) - stripW - 4;
+  cellW = Math.max(wideScreen() ? 26 : 22, Math.floor(avail / totalSteps()));
+
+  const lh = LANE_H(), u = usulDef(), h = rollKeys.length * lh;
+  wrap.style.maxHeight = Math.min(h + 2, wideScreen() ? 360 : 230) + "px";
   strip.style.height = h + "px";
   area.style.height = h + "px";
   area.style.width = timeW() + "px";
   strip.innerHTML = "";
   area.innerHTML = "";
 
-  for (let li = 0; li < keys.length; li++) {
-    const k = keys[keys.length - 1 - li];
+  for (let li = 0; li < rollKeys.length; li++) {
+    const idx = rollKeys.length - 1 - li;
+    const k = rollKeys[idx];
     const kb = document.createElement("button");
     kb.className = "kstrip " + (k.white ? "w" : "b") +
       (k.isTonic ? " tonic" : "") + (k.inScale ? "" : " outscale");
     kb.style.height = lh + "px";
     kb.textContent = midiToName(k.midi);
-    kb.addEventListener("pointerdown", e => { e.preventDefault(); hitKey(keys.length - 1 - li); });
+    kb.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      hitKey(keyIndexByMidi(k.midi));
+    });
     strip.appendChild(kb);
 
     const lane = document.createElement("div");
@@ -615,25 +643,18 @@ function renderRoll() {
   area.onpointerdown = async e => {
     if (e.target !== area) return;
     const r = area.getBoundingClientRect();
-    const i = keyIndexAtY(e.clientY - r.top);
+    const i = laneAtY(e.clientY - r.top);
     if (i === null) return;
+    const k = rollKeys[i];
     let time = (e.clientX - r.left) / timeW() * loopDur();
     if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
     time = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
-    state.notes.push({ t: time, f: keyFreq(keys[i]), midi: keys[i].midi, vel: 0.9, len: stepDur() });
+    state.notes.push({ t: time, f: keyFreq(k), midi: k.midi, vel: 0.9, len: stepDur() });
     updateNoteCount();
     renderRoll();
     await initAudio();
-    playNote(ctx, nodes, keyFreq(keys[i]), ctx.currentTime);
+    playNote(ctx, nodes, keyFreq(k), ctx.currentTime);
   };
-
-  // keep the tonic in view the first time the roll is drawn
-  const wrap = $("rollwrap");
-  if (wrap && !wrap.dataset.scrolled) {
-    const ti = keys.findIndex(k => k.isTonic);
-    if (ti >= 0) wrap.scrollTop = Math.max(0, laneOf(ti) * lh - wrap.clientHeight / 2);
-    wrap.dataset.scrolled = "1";
-  }
 }
 
 function startDrag(e, n, el) {
@@ -648,8 +669,8 @@ function startDrag(e, n, el) {
     let time = (ev.clientX - r.left - grabX) / timeW() * loopDur();
     if ($("quantize").checked) time = Math.round(time / stepDur()) * stepDur();
     n.t = Math.max(0, Math.min(time, loopDur() - stepDur() / 2));
-    const i = keyIndexAtY(ev.clientY - r.top);
-    if (i !== null) { n.midi = keys[i].midi; n.f = keyFreq(keys[i]); }
+    const i = laneAtY(ev.clientY - r.top);
+    if (i !== null) { n.midi = rollKeys[i].midi; n.f = keyFreq(rollKeys[i]); }
     placeNote(el, n);
   };
   const up = () => {
@@ -702,6 +723,19 @@ function renderKeys() {
   renderRoll();
 }
 
+// With smart scale on, an out-of-scale key sounds a makam pitch, so the note is
+// filed under the key that actually sounds rather than the one pressed.
+function soundingKey(k) {
+  if (!state.smart || k.inScale) return k;
+  let best = k, bd = 1e9;
+  for (const x of keys) {
+    if (!x.inScale) continue;
+    const d = Math.abs(x.freq - k.snapFreq);
+    if (d < bd) { bd = d; best = x; }
+  }
+  return best;
+}
+
 async function hitKey(i, vel = 0.9) {
   const k = keys[i];
   if (!k) return;
@@ -709,7 +743,7 @@ async function hitKey(i, vel = 0.9) {
   playNote(ctx, nodes, keyFreq(k), ctx.currentTime, vel);
   const btn = document.querySelector('[data-i="' + i + '"]');
   if (btn) { btn.classList.add("active"); setTimeout(() => btn.classList.remove("active"), 140); }
-  if (state.recording && state.playing) recordNote(k, vel);
+  if (state.recording && state.playing) recordNote(soundingKey(k), vel);
 }
 
 function recordNote(k, vel) {
