@@ -146,14 +146,15 @@ const I18N = {
     notesFound: "nota çıkarıldı", noMelody: "Tek sesli bir melodi bulunamadı. Mırıldanma ya da tek çalgı kaydı en iyi sonucu verir.",
     fileLoaded: "Dosya yüklendi,", fileBad: "Bu dosya okunamadı.",
     uploadHint: "Kendi mp3 ya da wav dosyanı yükleyip katman olarak kullanabilirsin. Notaya çevir, tek sesli kayıtlarda çalışır: mırıldanma, tek bir çalgı ya da solo vokal. Karışık bir şarkıyı enstrümanlarına ayırmaz, onu tarayıcıda yapmak mümkün değil.",
-    uploadHelp: "Notaya çevir tek sesli kayıtlarda çalışır, yani aynı anda tek bir perde duyulan kayıtlarda.\n\nEn iyi sonucu verenler:\n• Kendi mırıldanman ya da ıslığın. Telefonla sessiz bir odada kaydet, on on beş saniye yeter.\n• Tek bir çalgının solo kaydı: bağlama, ney, keman, flüt, piyano tek elle.\n• Araya çalgı karışmayan solo vokal.\n\nÇalışmayan: tam bir şarkı kaydı. Davul, bas ve birkaç çalgı aynı anda çalarken hangi sesin melodi olduğu ayırt edilemez, ortaya rastgele notalar çıkar. Karışık bir kaydı enstrümanlarına ayırmak ayrı bir iştir ve tarayıcıda yapılamaz.\n\nKayıt ipuçları: arkada televizyon, klima ya da sokak sesi olmasın. Mikrofona çok yaklaşma, patlama sesleri perdeyi bozar. Tempoyu önce uygulamada ayarla; loop çalarken mırıldanırsan notalar doğru yere oturur. mp3, wav, m4a ve ogg okunur.\n\nSon olarak: başkasının şarkısını indirip kullanmak hem eser sahibinin hakkına girer hem de çoğu sitenin kurallarına aykırıdır. Kendi sesin ya da kendi çaldığın kayıt hem en doğru sonucu verir hem de sorunsuzdur. Hazır ses arıyorsan Freesound'un CC0 bölümüne bak.",
+    uploadHelp: "Melodiyi çıkar kayıttaki en önde duran ezgiyi takip eder. Tam bir şarkı verdiğinde önce şarkının kendini tekrar eden bölümünü arar, yani çoğunlukla nakaratı; bulamazsa en gür yerini alır. Seçtiği aralık dalga formunda işaretli kalır.\n\nŞunu baştan bilmekte fayda var: ortada ne duyuyorsa onu çıkarır. Nakaratta en önde genelde vokal vardır, yani çıkan çizgi bağlamanın değil söyleyenin çizgisidir. Zaten istediğin de odur çoğu zaman, o ezgiyi bağlamayla çalarsın. Ama belli bir çalgıyı karışımın içinden ayırıp yalnız onu almak başka bir iştir ve tarayıcıda yapılamaz.\n\nEn temiz sonucu veren kayıtlar: kendi mırıldanman ya da ıslığın, tek bir çalgının solo kaydı, araya çalgı karışmayan vokal. Davul ve bas ne kadar baskınsa sonuç o kadar bozulur, arada yanlış nota çıkar. Çıkanı olduğu gibi kabul etme, piano roll'dan düzelt.\n\nKayıt ipuçları: arkada televizyon, klima ya da sokak sesi olmasın. Mikrofona çok yaklaşma, patlama sesleri perdeyi bozar. Tempoyu önce uygulamada ayarla; loop çalarken mırıldanırsan notalar doğru yere oturur. mp3, wav, m4a, ogg ve mp4 okunur.\n\nSon olarak: başkasının eserinden çıkardığın melodiyi yayınlamak eser sahibinin hakkına girer. Çalışmak, öğrenmek, denemek serbest. Paylaşacağın işte kendi melodini kullan. Hazır ses arıyorsan Freesound'un CC0 bölümüne bak.",
     fileTitle: "Dosyadan ya da YouTube'dan çıkar", pickFile: "Dosya seç", getRhythm: "Ritmi çıkar",
     getMelody: "Melodiyi çıkar", asLayer: "Katman yap", reading: "Dosya okunuyor...",
     hitsFound: "vuruş yerleşti", noRhythm: "Belirgin bir ritim bulunamadı.",
-    fileHint: "mp3, wav, m4a, opus, ogg, aac, flac ve mp4 okunur. Ritmi çıkar tam şarkılarda da çalışır: tempoyu bulur, vuruşları bandlarına göre düm, tek ve tek tiz satırlarına dağıtır. Melodiyi çıkar yalnızca tek sesli kayıtlarda işe yarar.",
+    fileHint: "mp3, wav, m4a, opus, ogg, aac, flac ve mp4 okunur. Ritmi çıkar tempoyu bulur, vuruşları bandlarına göre düm, tek ve tek tiz satırlarına dağıtır. Melodiyi çıkar şarkının kendini tekrar eden bölümünü arar, bulamazsa en gür yerini alır ve orada en önde duran ezgiyi takip eder. Seçtiği yer dalga formunda işaretli kalır.",
     ytLoad: "Aç", ytGrab: "Sesi yakala", ytStop: "Yakalamayı durdur",
     ytGrabbing: "Dinliyor, %s saniye kaldı. Bu sırada uygulamanın kendi sesi kapalı.",
     ytPressPlay: "Video duruyorsa oynat düğmesine bas.",
+    chorusFound: "Tekrar eden bölüm", loudestPart: "En gür bölüm",
     ytNext: "Şimdi Ritmi çıkar ya da Melodiyi çıkar'a bas.",
     ytOpened: "Video açıldı. Sesi yakala'ya bas, sekme sesini paylaş.",
     ytBad: "Bu bağlantıdan video kimliği çıkmadı. youtube.com/watch?v=... ya da youtu.be/... olmalı.",
@@ -266,14 +267,15 @@ const I18N = {
     notesFound: "notes found", noMelody: "No single-voice melody found. Humming or one instrument works best.",
     fileLoaded: "File loaded,", fileBad: "That file could not be read.",
     uploadHint: "Load your own mp3 or wav and use it as a layer. Find the melody works on single-voice material: humming, one instrument, or a solo vocal. It does not split a finished song into its instruments, which a browser cannot do.",
-    uploadHelp: "Find the melody works on single-voice material, where only one pitch sounds at a time.\n\nWhat works best:\n• Your own humming or whistling. A phone in a quiet room, ten or fifteen seconds is plenty.\n• One instrument on its own: bağlama, ney, violin, flute, piano with one hand.\n• A solo vocal with no instruments behind it.\n\nWhat does not work: a finished song. With drums, bass and several instruments at once there is no way to tell which pitch is the melody, and you get nonsense notes. Splitting a mixed recording into its instruments is a different job and a browser cannot do it.\n\nRecording tips: no television, air conditioning or street noise behind you. Do not crowd the mic, plosives ruin the pitch. Set the tempo first; if you hum while the loop plays, the notes land in the right place. mp3, wav, m4a and ogg are read.\n\nOne last thing: taking somebody else's song and uploading it goes against the rights of whoever made it and against most sites' terms. Your own voice or your own playing gives the better result anyway. For ready-made audio, look at the CC0 section of Freesound.",
+    uploadHelp: "Find the melody follows whatever carries the tune in the recording. Given a whole song it first looks for the part that repeats, which is usually the chorus, and falls back to the loudest part. The stretch it chose stays marked on the waveform.\n\nWorth knowing up front: it takes whatever is in front. In a chorus that is usually the voice, so the line you get is the singer's, not the bağlama's. Most of the time that is what you want anyway, and you play that line on bağlama. Pulling one instrument out of a mix is a different job and a browser cannot do it.\n\nCleanest results come from your own humming or whistling, one instrument on its own, or a vocal with nothing behind it. The louder the drums and bass, the more wrong notes come through. Do not take the result as it stands, fix it in the piano roll.\n\nRecording tips: no television, air conditioning or street noise behind you. Do not crowd the mic, plosives ruin the pitch. Set the tempo first; if you hum while the loop plays, the notes land in the right place. mp3, wav, m4a, ogg and mp4 are read.\n\nOne last thing: publishing a melody lifted from someone else's work goes against their rights. Working it out, learning from it, trying things is fine. For anything you release, use your own melody. For ready-made audio, look at the CC0 section of Freesound.",
     fileTitle: "Take it from a file or YouTube", pickFile: "Choose a file", getRhythm: "Find the rhythm",
     getMelody: "Find the melody", asLayer: "Use as a layer", reading: "Reading the file...",
     hitsFound: "hits placed", noRhythm: "No clear rhythm found.",
-    fileHint: "mp3, wav, m4a, opus, ogg, aac, flac and mp4 are read. Find the rhythm works on full songs: it finds the tempo and sorts the hits into the dum, tek and tek hi rows by frequency band. Find the melody only works on single-voice material.",
+    fileHint: "mp3, wav, m4a, opus, ogg, aac, flac and mp4 are read. Find the rhythm picks up the tempo and sorts the hits into the dum, tek and tek hi rows. Find the melody looks for the part of the song that repeats, falls back to the loudest part, and follows whatever carries the tune there. The stretch it chose stays marked on the waveform.",
     ytLoad: "Open", ytGrab: "Catch the sound", ytStop: "Stop catching",
     ytGrabbing: "Listening, %s seconds left. The app's own sound is muted while this runs.",
     ytPressPlay: "If the video is not playing, press play.",
+    chorusFound: "Repeated part", loudestPart: "Loudest part",
     ytNext: "Now press Find the rhythm or Find the melody.",
     ytOpened: "Video open. Press Catch the sound and share the tab audio.",
     ytBad: "No video id in that link. It should look like youtube.com/watch?v=... or youtu.be/...",
@@ -336,7 +338,7 @@ const THEMES = { toprak: "Toprak", gece: "Gece", orman: "Orman", gul: "Gül", ko
 const state = {
   bpm: 100, usul: "Maqsum (4/4)", bars: 2, swing: 0,
   grid: {}, notes: [], muted: new Set(),
-  voice: null, voiceOffsetQ: 0, volVoice: 1.0, fileBuf: null,
+  voice: null, voiceOffsetQ: 0, volVoice: 1.0, fileBuf: null, pickRange: null,
   fx: { reverb: 0, echo: 0, chorus: 0, drive: 0, bass: 0, treble: 0, comp: false, phone: false },
   playing: false, recording: false,
   makam: "Hicaz", tonic: 220.0, smart: true, inst: "baglama", toneOpt: "metal",
@@ -1537,6 +1539,7 @@ async function loadAudioFile(file) {
   st.textContent = t("reading");
   await initAudio();
   try {
+    state.pickRange = null;
     state.fileBuf = await ctx.decodeAudioData(await file.arrayBuffer());
     $("fileTools").hidden = false;
     drawFileWave();
@@ -1650,10 +1653,24 @@ async function toggleGrab() {
   await initAudio();
   let stream;
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-    });
+    const ask = {
+      video: { displaySurface: "browser" },
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      preferCurrentTab: true,          // Chrome then offers this tab straight away
+      selfBrowserSurface: "include",
+      surfaceSwitching: "exclude",
+      systemAudio: "exclude"
+    };
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia(ask);
+    } catch (err) {
+      if (err && (err.name === "NotAllowedError" || err.name === "AbortError")) throw err;
+      // an older browser trips over the extra keys
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+    }
   } catch (e) { st.textContent = t("ytDenied"); return; }
   const tracks = stream.getAudioTracks();
   if (!tracks.length) {
@@ -1710,6 +1727,7 @@ async function finishGrab() {
   if (blob.size < 4000) { st.textContent = t("ytEmpty"); return; }
   try {
     await initAudio();
+    state.pickRange = null;
     state.fileBuf = await ctx.decodeAudioData(await blob.arrayBuffer());
     $("fileTools").hidden = false;
     drawFileWave();
@@ -1732,6 +1750,15 @@ function drawFileWave() {
   cx.clearRect(0, 0, w, h);
   if (!state.fileBuf) { c.hidden = true; return; }
   c.hidden = false;
+  // the stretch the melody was taken from
+  if (state.pickRange && state.fileBuf.duration > 0) {
+    const x1 = (state.pickRange.start / state.fileBuf.duration) * w;
+    const x2 = (state.pickRange.end / state.fileBuf.duration) * w;
+    cx.fillStyle = cssVar("--accent");
+    cx.globalAlpha = 0.22;
+    cx.fillRect(x1, 0, Math.max(2, x2 - x1), h);
+    cx.globalAlpha = 1;
+  }
   const d = state.fileBuf.getChannelData(0);
   const step = Math.max(1, Math.floor(d.length / w));
   cx.fillStyle = cssVar("--accent2");
@@ -1791,6 +1818,264 @@ function yinPitch(d, start, win, sr) {
   return sr / (tau + shift);
 }
 
+/* ---------- finding the tune inside a finished recording ---------- */
+
+function monoSlice(buffer, sra, t0, t1) {
+  const ch0 = buffer.getChannelData(0);
+  const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null;
+  const ratio = buffer.sampleRate / sra;
+  const n = Math.max(0, Math.floor((t1 - t0) * sra));
+  const off = t0 * buffer.sampleRate;
+  const d = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const j = Math.floor(off + i * ratio);
+    d[i] = ch1 ? ((ch0[j] || 0) + (ch1[j] || 0)) * 0.5 : (ch0[j] || 0);
+  }
+  return d;
+}
+
+const clock = sec => Math.floor(sec / 60) + ":" + String(Math.floor(sec % 60)).padStart(2, "0");
+
+/* A cheap stand-in for a running median: one median per block of bins, then a
+   straight line between block centres. Used to find the noise floor. */
+function noiseFloor(m, out, block) {
+  const n = m.length, tmp = new Float32Array(block);
+  const nb = Math.ceil(n / block);
+  const med = new Float32Array(nb);
+  for (let b = 0; b < nb; b++) {
+    const from = b * block, to = Math.min(n, from + block), len = to - from;
+    for (let i = 0; i < len; i++) tmp[i] = m[from + i];
+    const part = len === block ? tmp : tmp.subarray(0, len);
+    Array.prototype.sort.call(part, (a, c) => a - c);
+    med[b] = part[len >> 1];
+  }
+  for (let b = 0; b < nb; b++) {
+    const from = b * block, to = Math.min(n, from + block);
+    const c0 = med[b], c1 = med[Math.min(nb - 1, b + 1)];
+    for (let i = from; i < to; i++) out[i] = c0 + (c1 - c0) * ((i - from) / block);
+  }
+}
+
+/* The chorus is the part that comes back. Chroma vectors every 93 ms, the lag
+   with the strongest self-similarity, then the window that repeats best and is
+   loudest. With no clear repeat it returns the loudest window instead. */
+function findChorus(buffer, want) {
+  const SRA = 22050, WIN = 4096, HOP = 2048, fps = SRA / HOP;
+  const dur = Math.min(buffer.duration, 300);
+  if (dur <= want + 6) return { start: 0, end: dur, repeated: false };
+  const d = monoSlice(buffer, SRA, 0, dur);
+  const frames = Math.floor((d.length - WIN) / HOP);
+  const wf = Math.round(want * fps);
+  if (frames < wf * 2) return { start: 0, end: dur, repeated: false };
+
+  const hann = new Float32Array(WIN);
+  for (let i = 0; i < WIN; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / WIN);
+  const re = new Float32Array(WIN), im = new Float32Array(WIN);
+  const chroma = [], energy = new Float32Array(frames);
+  const kLo = Math.ceil(80 * WIN / SRA), kHi = Math.floor(2000 * WIN / SRA);
+  for (let f = 0; f < frames; f++) {
+    const off = f * HOP;
+    for (let i = 0; i < WIN; i++) { re[i] = d[off + i] * hann[i]; im[i] = 0; }
+    fft(re, im);
+    const c = new Float32Array(12);
+    let e = 0;
+    for (let k = kLo; k <= kHi; k++) {
+      const m = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
+      e += m;
+      c[((Math.round(12 * Math.log2(k * SRA / WIN / 440)) % 12) + 12) % 12] += m;
+    }
+    let nrm = 0;
+    for (let i = 0; i < 12; i++) nrm += c[i] * c[i];
+    nrm = Math.sqrt(nrm) || 1;
+    for (let i = 0; i < 12; i++) c[i] /= nrm;
+    chroma.push(c);
+    energy[f] = e;
+  }
+  const sim = (a, b) => {
+    const x = chroma[a], y = chroma[b];
+    let v = 0;
+    for (let i = 0; i < 12; i++) v += x[i] * y[i];
+    return v;
+  };
+
+  const minLag = Math.round(8 * fps);
+  const maxLag = Math.min(frames - wf - 1, Math.round(100 * fps));
+  let bestLag = 0, bestMean = 0;
+  for (let lag = minLag; lag < maxLag; lag++) {
+    let acc = 0, n = 0;
+    for (let i = 0; i + lag < frames; i += 2) { acc += sim(i, i + lag); n++; }
+    acc /= n || 1;
+    if (acc > bestMean) { bestMean = acc; bestLag = lag; }
+  }
+
+  let eMax = 1;
+  for (const v of energy) if (v > eMax) eMax = v;
+  const winEnergy = i => {
+    let e = 0;
+    for (let j = 0; j < wf; j++) e += energy[i + j] || 0;
+    return e / (wf * eMax);
+  };
+
+  let best = null;
+  if (bestLag) {
+    for (let i = 0; i + wf + bestLag < frames; i++) {
+      let s = 0;
+      for (let j = 0; j < wf; j += 2) s += sim(i + j, i + j + bestLag);
+      s /= Math.ceil(wf / 2);
+      const score = s + 0.7 * winEnergy(i);
+      if (!best || score > best.score) best = { score, i, s };
+    }
+  }
+  if (best && best.s > 0.6) {
+    // of the two passes take the louder one, that is usually the chorus
+    const i2 = best.i + bestLag;
+    const start = (winEnergy(i2) > winEnergy(best.i) * 1.04 ? i2 : best.i) / fps;
+    return { start, end: Math.min(dur, start + want), repeated: true };
+  }
+  let loud = 0, loudE = -1;
+  for (let i = 0; i + wf < frames; i++) {
+    const e = winEnergy(i);
+    if (e > loudE) { loudE = e; loud = i; }
+  }
+  const start = loud / fps;
+  return { start, end: Math.min(dur, start + want), repeated: false };
+}
+
+/* The leading melody in a mix, by harmonic summation. For every pitch on a ten
+   cent grid it adds up what sits on that pitch and its first eight harmonics,
+   then walks the strongest path through the frames so the line stays joined up
+   instead of jumping an octave whenever a chord changes. */
+function predominantMelody(buffer, t0, t1) {
+  const SRA = 22050, WIN = 2048, HOP = 256, BINS = WIN / 2, frameSec = HOP / SRA;
+  const d = monoSlice(buffer, SRA, t0, t1);
+  const frames = Math.floor((d.length - WIN) / HOP);
+  if (frames < 8) return { pitches: [], frameSec };
+
+  const F0MIN = 130, STEP = 10, NB = 360;           // 130 Hz up to about 1040 Hz
+  const binHz = SRA / WIN;
+  const hw = [1, 0.84, 0.72, 0.62, 0.53, 0.45, 0.39, 0.33];
+  const freqOf = b => F0MIN * Math.pow(2, b * STEP / 1200);
+  const map = new Int32Array(NB * hw.length);
+  for (let b = 0; b < NB; b++)
+    for (let h = 0; h < hw.length; h++) {
+      const k = Math.round(freqOf(b) * (h + 1) / binHz);
+      map[b * hw.length + h] = k > 0 && k < BINS - 1 ? k : -1;
+    }
+
+  const hann = new Float32Array(WIN);
+  for (let i = 0; i < WIN; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / WIN);
+  const re = new Float32Array(WIN), im = new Float32Array(WIN);
+  const m = new Float32Array(BINS), w = new Float32Array(BINS), floor = new Float32Array(BINS);
+  const K = 5;
+  const cand = [], tops = new Float32Array(frames);
+
+  for (let f = 0; f < frames; f++) {
+    const off = f * HOP;
+    for (let i = 0; i < WIN; i++) { re[i] = d[off + i] * hann[i]; im[i] = 0; }
+    fft(re, im);
+    for (let k = 0; k < BINS; k++) m[k] = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
+    // keep only what stands out from its neighbourhood, which drops drums and hiss
+    noiseFloor(m, floor, 16);
+    for (let k = 0; k < BINS; k++) { const v = m[k] - floor[k]; w[k] = v > 0 ? v : 0; }
+    const peaks = [];
+    let prev2 = 0, prev1 = 0;
+    for (let b = 0; b < NB; b++) {
+      let sal = 0;
+      for (let h = 0; h < hw.length; h++) {
+        const k = map[b * hw.length + h];
+        if (k < 1) continue;
+        const v = w[k - 1] > w[k] ? w[k - 1] : w[k];
+        sal += hw[h] * (w[k + 1] > v ? w[k + 1] : v);
+      }
+      if (b >= 2 && prev1 > prev2 && prev1 >= sal) peaks.push({ b: b - 1, s: prev1 });
+      prev2 = prev1; prev1 = sal;
+    }
+    peaks.sort((x, y) => y.s - x.s);
+    const top = peaks.slice(0, K);
+    cand.push(top);
+    tops[f] = top.length ? top[0].s : 0;
+  }
+
+  const sorted = Array.from(tops).sort((a, b) => a - b);
+  const med = sorted[Math.floor(sorted.length * 0.55)] || 1e-9;
+  const gate = med * 0.35;
+
+  // walk the frames, paying for jumps, so the line follows one voice
+  const cost = [], back = [];
+  for (let f = 0; f < frames; f++) {
+    const cs = cand[f], n = cs.length;
+    const cf = new Float32Array(n), bf = new Int32Array(n);
+    for (let i = 0; i < n; i++) {
+      const own = -cs[i].s / med;
+      if (f === 0) { cf[i] = own; bf[i] = -1; continue; }
+      const pc = cost[f - 1], pr = cand[f - 1];
+      let bv = 1e9, bi = 0;
+      for (let j = 0; j < pr.length; j++) {
+        const jump = Math.abs(cs[i].b - pr[j].b) * STEP / 100;
+        const v = pc[j] + Math.min(jump, 14) * 0.55;
+        if (v < bv) { bv = v; bi = j; }
+      }
+      cf[i] = bv + own; bf[i] = bi;
+    }
+    cost.push(cf); back.push(bf);
+  }
+  const pitches = new Float32Array(frames);
+  if (frames && cand[frames - 1].length) {
+    let bi = 0;
+    for (let i = 1; i < cost[frames - 1].length; i++)
+      if (cost[frames - 1][i] < cost[frames - 1][bi]) bi = i;
+    for (let f = frames - 1; f >= 0; f--) {
+      const c = cand[f][bi];
+      pitches[f] = c && c.s > gate ? freqOf(c.b) : 0;
+      bi = back[f][bi];
+      if (bi < 0) break;
+    }
+  }
+  // a lone frame between two silences is noise, not a note
+  for (let f = 1; f < frames - 1; f++)
+    if (pitches[f] && !pitches[f - 1] && !pitches[f + 1]) pitches[f] = 0;
+  return { pitches: Array.from(pitches), frameSec };
+}
+
+// one shared way of turning a run of pitch readings into notes on the grid
+function pitchesToNotes(pitches, frameSec, offsetSec) {
+  const segs = [];
+  let cur = null;
+  pitches.forEach((f, i) => {
+    if (!f) { if (cur) { segs.push(cur); cur = null; } return; }
+    if (cur && Math.abs(1200 * Math.log2(f / cur.f)) < 70) {
+      cur.n++; cur.f = (cur.f * (cur.n - 1) + f) / cur.n;
+    } else {
+      if (cur) segs.push(cur);
+      cur = { start: i, n: 1, f };
+    }
+  });
+  if (cur) segs.push(cur);
+
+  const minFrames = Math.max(3, Math.round(0.07 / frameSec));
+  const added = [];
+  for (const sg of segs) {
+    if (sg.n < minFrames) continue;
+    const tSec = sg.start * frameSec + offsetSec;
+    let q = secToQ(tSec) % loopQ();
+    let lenQ = secToQ(sg.n * frameSec);
+    if ($("quantize").checked) {
+      q = Math.round(q / stepQ()) * stepQ();
+      lenQ = Math.max(stepQ(), Math.round(lenQ / stepQ()) * stepQ());
+    }
+    if (q < 0 || q >= loopQ()) continue;
+    let best = keys[0], bd = 1e9;                     // land it on a makam pitch
+    for (const k of keys) {
+      if (state.smart && !k.inScale) continue;
+      const dist = Math.abs(Math.log2(sg.f / keyFreq(k)));
+      if (dist < bd) { bd = dist; best = k; }
+    }
+    if (bd > 0.5) continue;                           // more than a fifth out, skip it
+    added.push({ q, lenQ, f: keyFreq(best), midi: best.midi, vel: 0.9 });
+  }
+  return added;
+}
+
 function melodyToNotes(fromFile) {
   const buf = fromFile ? state.fileBuf : state.voice;
   if (!buf) return;
@@ -1798,54 +2083,42 @@ function melodyToNotes(fromFile) {
   const st = $(fromFile ? "fileStatus" : "micStatus");
   st.textContent = t("analysing");
   setTimeout(() => {
-    const sr = buf.sampleRate, d = buf.getChannelData(0);
-    const win = 2048, hop = Math.floor(sr * 0.021);
-    const frames = [];
-    for (let i = 0; i + win < d.length; i += hop) {
-      let rms = 0;
-      for (let j = 0; j < win; j += 4) rms += d[i + j] * d[i + j];
-      rms = Math.sqrt(rms / (win / 4));
-      frames.push(rms < 0.012 ? 0 : yinPitch(d, i, win, sr));
-    }
-    // group neighbouring frames that hold the same pitch into notes
-    const segs = [];
-    let cur = null;
-    frames.forEach((f, i) => {
-      if (!f) { if (cur) { segs.push(cur); cur = null; } return; }
-      if (cur && Math.abs(1200 * Math.log2(f / cur.f)) < 70) {
-        cur.n++; cur.f = (cur.f * (cur.n - 1) + f) / cur.n;
-      } else {
-        if (cur) segs.push(cur);
-        cur = { start: i, n: 1, f };
-      }
-    });
-    if (cur) segs.push(cur);
+    let pitches, frameSec, head = "";
+    let offsetSec = fromFile ? 0 : qToSec(state.voiceOffsetQ);
 
-    const minFrames = Math.max(3, Math.round(0.07 / (hop / sr)));
-    const added = [];
-    for (const sg of segs) {
-      if (sg.n < minFrames) continue;
-      const tSec = sg.start * hop / sr + (fromFile ? 0 : qToSec(state.voiceOffsetQ));
-      let q = secToQ(tSec) % loopQ();
-      let lenQ = secToQ(sg.n * hop / sr);
-      if ($("quantize").checked) {
-        q = Math.round(q / stepQ()) * stepQ();
-        lenQ = Math.max(stepQ(), Math.round(lenQ / stepQ()) * stepQ());
+    if (fromFile) {
+      // exactly as much as the loop holds, so the notes fill it once without piling up
+      const want = Math.min(30, Math.max(3, qToSec(loopQ())));
+      let t0 = 0, t1 = Math.min(buf.duration, want);
+      if (buf.duration > want + 6) {
+        const ch = findChorus(buf, want);
+        t0 = ch.start; t1 = ch.end;
+        state.pickRange = ch;
+        drawFileWave();
+        head = (ch.repeated ? t("chorusFound") : t("loudestPart")) + " " +
+               clock(t0) + " - " + clock(t1) + ". ";
       }
-      if (q < 0 || q >= loopQ()) continue;
-      let best = keys[0], bd = 1e9;                     // land it on a makam pitch
-      for (const k of keys) {
-        if (state.smart && !k.inScale) continue;
-        const dist = Math.abs(Math.log2(sg.f / keyFreq(k)));
-        if (dist < bd) { bd = dist; best = k; }
+      const r = predominantMelody(buf, t0, t1);
+      pitches = r.pitches; frameSec = r.frameSec;
+    } else {
+      // a mic take is one voice already, so the cheaper reading is the better one
+      const sr = buf.sampleRate, d = buf.getChannelData(0);
+      const win = 2048, hop = Math.floor(sr * 0.021);
+      pitches = [];
+      for (let i = 0; i + win < d.length; i += hop) {
+        let rms = 0;
+        for (let j = 0; j < win; j += 4) rms += d[i + j] * d[i + j];
+        rms = Math.sqrt(rms / (win / 4));
+        pitches.push(rms < 0.012 ? 0 : yinPitch(d, i, win, sr));
       }
-      if (bd > 0.5) continue;                           // more than a fifth out, skip it
-      added.push({ q, lenQ, f: keyFreq(best), midi: best.midi, vel: 0.9 });
+      frameSec = hop / sr;
     }
+
+    const added = pitchesToNotes(pitches, frameSec, offsetSec);
     state.notes = state.notes.concat(added);
     updateNoteCount();
     renderRoll();
-    st.textContent = added.length ? added.length + " " + t("notesFound") : t("noMelody");
+    st.textContent = added.length ? head + added.length + " " + t("notesFound") : head + t("noMelody");
   }, 30);
 }
 
