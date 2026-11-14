@@ -32,7 +32,7 @@ a { color: var(--accent2); }
   background: var(--bg);
   z-index: 5;
 }
-.logo { height: 44px; width: auto; filter: brightness(1.9); }
+.logo { height: 44px; width: auto; }
 .transport { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 button {
   font: inherit;

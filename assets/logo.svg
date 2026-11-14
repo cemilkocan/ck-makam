@@ -15,5 +15,5 @@
     </g>
     <ellipse cx="50" cy="16" rx="35" ry="8" fill="#F2E3C6" stroke="#1E1B18" stroke-width="3"/>
   </g>
-  <text x="112" y="90" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="66" fill="#1E1B18"><tspan font-weight="800">CK</tspan><tspan dx="14" font-weight="400">Makam</tspan></text>
+  <text x="112" y="90" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="66" fill="#F2E7D8"><tspan font-weight="800">CK</tspan><tspan dx="14" font-weight="400">Makam</tspan></text>
 </svg>
