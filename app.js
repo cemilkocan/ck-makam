@@ -13,15 +13,22 @@ const BAGLAMA_F0 = {
   csh: 289.17, d1n: 293.94, dh: 299.11, eb: 312.66, ebh: 314.09, eh: 334.27
 };
 
-// Makam scales as 53-comma (AEU) step patterns from the tonic.
+// Scale degrees measured from the SymbTr corpus (40-60 pieces per makam) rather than
+// copied from the AEU table, so they follow what players actually play.
 const MAKAMS = {
-  "Hicaz":    { steps: [5, 12, 5, 9, 8, 5, 9], mood: "sad" },
-  "Rast":     { steps: [9, 8, 5, 9, 9, 8, 5], mood: "happy" },
-  "Çargah":   { steps: [9, 9, 4, 9, 9, 9, 4], mood: "happy" },
-  "Uşşak":    { steps: [8, 5, 9, 9, 8, 5, 9], mood: "calm" },
-  "Kürdi":    { steps: [4, 9, 9, 9, 4, 9, 9], mood: "sad" },
-  "Hüzzam":   { steps: [5, 9, 5, 12, 5, 9, 8], mood: "sad" },
-  "Nihavend": { steps: [9, 4, 9, 9, 4, 9, 9], mood: "sad" }
+  "Hicaz":     { steps: [5, 12, 5, 9, 4, 9, 9], mood: "sad" },
+  "Rast":      { steps: [9, 8, 5, 9, 9, 8, 5], mood: "happy" },
+  "Uşşak":     { steps: [7, 6, 9, 9, 4, 9, 9], mood: "calm" },
+  "Kürdi":     { steps: [4, 9, 9, 9, 4, 9, 9], mood: "sad" },
+  "Hüzzam":    { steps: [5, 9, 6, 10, 6, 9, 8], mood: "sad" },
+  "Nihavent":  { steps: [9, 4, 9, 9, 4, 9, 9], mood: "sad" },
+  "Hüseyni":   { steps: [7, 6, 9, 9, 4, 9, 9], mood: "happy" },
+  "Mahur":     { steps: [9, 9, 4, 9, 9, 9, 4], mood: "happy" },
+  "Muhayyer":  { steps: [7, 6, 9, 9, 7, 6, 9], mood: "happy" },
+  "Saba":      { steps: [7, 6, 6, 12, 4, 9, 9], mood: "sad" },
+  "Beyati":    { steps: [7, 6, 9, 9, 4, 9, 9], mood: "calm" },
+  "Neva":      { steps: [7, 6, 9, 9, 8, 5, 9], mood: "calm" },
+  "Çargah":    { steps: [9, 9, 4, 9, 9, 9, 4], mood: "happy" }
 };
 
 const TONICS = [["G", 196.00], ["G#", 207.65], ["A", 220.00], ["A#", 233.08],
@@ -47,13 +54,15 @@ const USULS = {
   "Çiftetelli (4/4)": { steps: 16, quarters: 4, groups: [4, 4, 4, 4],
     rows: { doum: "X.......x.x.....", tek: "...x..x.....x..." } },
   "Sofyan (4/4)": { steps: 8, quarters: 4, groups: [2, 2, 2, 2],
-    rows: { doum: "X.......", tek: "....x...", mute: ".....o.." } },
+    rows: { doum: "X.......", tek: "..x.x..." } },
+  "Nîmsofyan (2/4)": { steps: 4, quarters: 2, groups: [2, 2],
+    rows: { doum: "X...", tek: "..x." } },
   "Karşılama (9/8)": { steps: 9, quarters: 4.5, groups: [2, 2, 2, 3],
     rows: { doum: "X...x....", tek: "..x...x.x" } },
   "Aksak (9/8)": { steps: 9, quarters: 4.5, groups: [2, 2, 2, 3],
-    rows: { doum: "X...x....", tek: "......x..", mute: "..o.....o" } },
+    rows: { doum: "X.....X..", tek: "..x.x...x" } },
   "Düyek (8/8)": { steps: 8, quarters: 4, groups: [2, 2, 2, 2],
-    rows: { doum: "X..x....", tek: "...x.x.x", mute: "....o..." } },
+    rows: { doum: "X...X...", tek: "...x..x." } },
   "Boş (4/4)": { steps: 16, quarters: 4, groups: [4, 4, 4, 4], rows: {} }
 };
 
@@ -117,16 +126,27 @@ const I18N = {
       "Uşşak": "Sakin ve içli. Türk halk müziğinin en çok kullanılan dizisi.",
       "Kürdi": "Üzgün ve yalın. İkinci perde pes olduğu için baştan koyu bir renk verir.",
       "Hüzzam": "Dokunaklı, kıvrımlı. Hicaz'a benzer ama karar sesi başka yerde durur.",
-      "Nihavend": "Romantik ve üzgün. Batı minörünün karşılığı."
+      "Nihavent": "Romantik ve üzgün. Batı minörünün karşılığı, modern düzenlemelerle en kolay birleşen makam.",
+      "Hüseyni": "Canlı ve yiğit. Anadolu türkülerinin en geniş kullanılan dizilerinden.",
+      "Mahur": "Parlak ve tok. Batı majörüne yakın durur, kararlı bir hava verir.",
+      "Muhayyer": "Hareketli ve tiz. Yukarıdan başlayıp aşağı doğru akar.",
+      "Saba": "En hüzünlü makam sayılır. Dördüncü perdesi beklenmedik yere düşer, içi burkar.",
+      "Beyati": "Sakin ve yumuşak. Uşşak'a yakın ama daha oturaklı.",
+      "Neva": "Dingin ve dengeli. Marşlarda ve ağır türkülerde çok duyulur."
     },
     wheelNote: "Dikkat: Camelot, Batı'nın 12 eşit aralıklı sistemine göre kuruludur. Makamın koma perdeleriyle matematiği farklıdır, bu tekerlek komalı geçişleri birebir karşılamaz. Yaklaşık bir pusula olarak kullan.",
     bpmLbl: "BPM",
+    inst: "Çalgı", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
+    upload: "Müzik yükle", toNotes: "Notaya çevir", analysing: "Melodi çözülüyor...",
+    notesFound: "nota çıkarıldı", noMelody: "Tek sesli bir melodi bulunamadı. Mırıldanma ya da tek çalgı kaydı en iyi sonucu verir.",
+    fileLoaded: "Dosya yüklendi,", fileBad: "Bu dosya okunamadı.",
+    uploadHint: "Kendi mp3 ya da wav dosyanı yükleyip katman olarak kullanabilirsin. Notaya çevir, tek sesli kayıtlarda çalışır: mırıldanma, tek bir çalgı ya da solo vokal. Karışık bir şarkıyı enstrümanlarına ayırmaz, onu tarayıcıda yapmak mümkün değil.",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
     micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko",
     micHint: "Mikrofona konuş ya da söyle, sesin loop'a katman olarak eklenir. Çal sırasında kaydedersen ritme oturur. Geç ya da erken düştüyse kaydırmayla hizala. Hoparlör açıkken kaydedersen loop sesi de karışabilir, kulaklık takmak en temizi.",
     micDenied: "Mikrofon izni verilmedi.", micNo: "Bu tarayıcı mikrofon kaydını desteklemiyor.",
-    micOn: "Kaydediyor, bitince düğmeye bas.", micSaved: "Ses eklendi.", voice: "Ses",
+    micEmpty: "Kayıt boş çıktı, tekrar dene.", micOn: "Kaydediyor, bitince düğmeye bas.", micSaved: "Ses eklendi.", voice: "Ses",
     wheel: "Camelot tekerleği", wheelNow: "Şu an", wheelFit: "Uyumlu",
     wheelHelp: "Tekerlekten bir koda tıklayınca karar sesi ve makam ona göre ayarlanır. Aşağıdaki açıklamada sistemin nasıl çalıştığı yazıyor.",
     learn: "Bunlar ne demek?",
@@ -140,7 +160,13 @@ const I18N = {
       "Uşşak": "Türküler, ninni ve ağıt arası sakin ezgiler. İçini dökerken kullanılır.",
       "Kürdi": "Hüzünlü ama yalın parçalar. Az notayla çok şey anlatmak isteyen için uygun.",
       "Hüzzam": "Duygusal doruk noktaları, taksim ve uzun soluklu şarkılar. Dokunaklı anlar için.",
-      "Nihavend": "Romantik şarkılar, film müziği, modern düzenlemeler. Batı armonisiyle en kolay birleşen makam."
+      "Nihavent": "Romantik şarkılar, film müziği, modern düzenlemeler.",
+      "Hüseyni": "Oyun havaları, yiğitlik türküleri, canlı ve hareketli parçalar.",
+      "Mahur": "Kararlı ve parlak açılışlar, marş havası isteyen bölümler.",
+      "Muhayyer": "Hızlı oyun havaları, tiz başlayan neşeli ezgiler.",
+      "Saba": "En koyu hüzün. Ağıt, ayrılık ve dinî eserler.",
+      "Beyati": "Sakin türküler, ninniler, oturaklı ezgiler.",
+      "Neva": "Marşlar, ağır ve ciddi parçalar."
     },
     tourTitle: "CK Makam'a hoş geldin",
     tourSkip: "Atla", tourNext: "İleri", tourPrev: "Geri", tourDone: "Başla",
@@ -201,16 +227,27 @@ const I18N = {
       "Uşşak": "Calm and inward. The most used scale in Turkish folk music.",
       "Kürdi": "Sad and plain. The flat second gives it a dark colour from the first note.",
       "Hüzzam": "Poignant and winding. Close to Hicaz but it comes to rest elsewhere.",
-      "Nihavend": "Romantic and sad. The equivalent of the Western minor scale."
+      "Nihavent": "Romantic and sad, the equivalent of the Western minor and the easiest to pair with modern arrangements.",
+      "Hüseyni": "Lively and bold, one of the most used scales in Anatolian folk song.",
+      "Mahur": "Bright and full, close to a Western major with a settled feel.",
+      "Muhayyer": "Animated and high, it starts up top and flows downward.",
+      "Saba": "Often called the saddest makam. Its fourth degree falls somewhere you do not expect.",
+      "Beyati": "Calm and soft, close to Uşşak but more grounded.",
+      "Neva": "Still and balanced, heard in marches and slow folk songs."
     },
     wheelNote: "Note: Camelot is built on the West's 12 equal divisions. Makam comma pitches follow different arithmetic, so this wheel does not map comma-based transitions one to one. Use it as a rough compass.",
     bpmLbl: "BPM",
+    inst: "Instrument", baglama: "Bağlama", kanun: "Kanun", ney: "Ney",
+    upload: "Load audio", toNotes: "Find the melody", analysing: "Reading the melody...",
+    notesFound: "notes found", noMelody: "No single-voice melody found. Humming or one instrument works best.",
+    fileLoaded: "File loaded,", fileBad: "That file could not be read.",
+    uploadHint: "Load your own mp3 or wav and use it as a layer. Find the melody works on single-voice material: humming, one instrument, or a solo vocal. It does not split a finished song into its instruments, which a browser cannot do.",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
     micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo",
     micHint: "Speak or sing into the mic and your voice joins the loop as a layer. Record while it plays and it lands in time. If it sits late or early, nudge it into place. Recording with the speakers on can bleed the loop into the take, so headphones are cleanest.",
     micDenied: "Microphone permission was refused.", micNo: "This browser cannot record from the microphone.",
-    micOn: "Recording, press the button when you are done.", micSaved: "Voice added.", voice: "Voice",
+    micEmpty: "The take came out empty, try again.", micOn: "Recording, press the button when you are done.", micSaved: "Voice added.", voice: "Voice",
     wheel: "Camelot wheel", wheelNow: "Now", wheelFit: "Mixes with",
     wheelHelp: "Click a code and the tonic and makam follow it. The notes below explain how the system works.",
     learn: "What do these mean?",
@@ -224,7 +261,13 @@ const I18N = {
       "Uşşak": "Folk songs, somewhere between a lullaby and a lament. For quiet confession.",
       "Kürdi": "Sad but plain pieces. Good when you want to say a lot with few notes.",
       "Hüzzam": "Emotional peaks, taksim improvisations, long songs. For the moments that ache.",
-      "Nihavend": "Romantic songs, film music, modern arrangements. The easiest makam to pair with Western harmony."
+      "Nihavent": "Romantic songs, film music, modern arrangements.",
+      "Hüseyni": "Dance tunes, songs of bravado, lively material.",
+      "Mahur": "Settled, bright openings and anything that wants a march feel.",
+      "Muhayyer": "Fast dance tunes and cheerful lines that start high.",
+      "Saba": "The deepest grief: laments, partings and devotional pieces.",
+      "Beyati": "Calm folk songs, lullabies, grounded melodies.",
+      "Neva": "Marches and slow, serious pieces."
     },
     tourTitle: "Welcome to CK Makam",
     tourSkip: "Skip", tourNext: "Next", tourPrev: "Back", tourDone: "Start",
@@ -255,7 +298,7 @@ const state = {
   grid: {}, notes: [], muted: new Set(),
   voice: null, voiceOffsetQ: 0, volVoice: 1.0, reverb: 0, echo: 0,
   playing: false, recording: false,
-  makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal",
+  makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal", inst: "baglama",
   volDrums: 0.9, volBaglama: 0.9
 };
 
@@ -286,6 +329,12 @@ const isWhite = m => WHITE_PCS.includes(((m % 12) + 12) % 12);
 const midiToName = m => t("noteNames")[((m % 12) + 12) % 12] + Math.floor(m / 12);
 
 function pickSample(freq) {
+  if (state.inst !== "baglama") {
+    let ref = SYNTH_REFS[0];
+    for (const f of SYNTH_REFS)
+      if (Math.abs(Math.log2(freq / f)) < Math.abs(Math.log2(freq / ref))) ref = f;
+    return { name: state.inst + "_" + ref, rate: freq / ref };
+  }
   let best = null, bestDist = 1e9;
   for (const [name, f0] of Object.entries(BAGLAMA_F0)) {
     const d = Math.abs(Math.log2(freq / f0));
@@ -342,6 +391,7 @@ async function initAudio() {
   if (ctx) { if (ctx.state === "suspended") await ctx.resume(); return; }
   ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
   nodes = buildGraph(ctx);
+  buildSynths(ctx);
   await Promise.all(Object.entries(SOUND_FILES).map(async ([key, url]) => {
     const res = await fetch(url);
     buffers[key] = await ctx.decodeAudioData(await res.arrayBuffer());
@@ -475,6 +525,59 @@ function playNote(ac, g, freq, time, vel = 0.9) {
   src.connect(gain).connect(g.bagIn);
   src.start(Math.max(time, ac.currentTime));
   track(ac, src);
+}
+
+/* Kanun and ney have no CC0 single-note recordings worth using, so they are
+   synthesised here: the kanun as detuned plucked strings, the ney as a breathy
+   pipe. Rendered once at load into buffers, then pitch-shifted like a sample. */
+const SYNTH_REFS = [110, 220, 440];
+
+function synthKanun(ac, f0) {
+  const sr = ac.sampleRate, len = Math.floor(sr * 1.8);
+  const buf = ac.createBuffer(1, len, sr);
+  const out = buf.getChannelData(0);
+  for (const det of [-4, 0, 5]) {                       // three courses, lightly detuned
+    const f = f0 * Math.pow(2, det / 1200);
+    const n = Math.max(2, Math.round(sr / f));
+    const ring = new Float32Array(n);
+    for (let i = 0; i < n; i++) ring[i] = Math.random() * 2 - 1;
+    let idx = 0, prev = 0;
+    for (let i = 0; i < len; i++) {
+      const cur = ring[idx];
+      const v = (cur + prev) * 0.5 * 0.9985;            // bright, slow decay
+      ring[idx] = v;
+      prev = cur;
+      idx = (idx + 1) % n;
+      out[i] += cur * Math.exp(-i / sr * 1.1) / 3;
+    }
+  }
+  const atk = Math.floor(sr * 0.002);
+  for (let i = 0; i < atk; i++) out[i] *= i / atk;
+  return buf;
+}
+
+function synthNey(ac, f0) {
+  const sr = ac.sampleRate, len = Math.floor(sr * 2.2);
+  const buf = ac.createBuffer(1, len, sr);
+  const out = buf.getChannelData(0);
+  let lp = 0;
+  for (let i = 0; i < len; i++) {
+    const t2 = i / sr;
+    const env = Math.min(1, t2 / 0.09) * Math.exp(-t2 * 0.55);
+    const vib = 1 + 0.006 * Math.sin(2 * Math.PI * 5.2 * t2) * Math.min(1, t2 / 0.4);
+    const ph = 2 * Math.PI * f0 * vib * t2;
+    let v = Math.sin(ph) + 0.34 * Math.sin(2 * ph) + 0.12 * Math.sin(3 * ph) + 0.05 * Math.sin(4 * ph);
+    lp = lp * 0.72 + (Math.random() * 2 - 1) * 0.28;    // breath
+    out[i] = (v * 0.42 + lp * 0.3 * Math.min(1, t2 / 0.05)) * env;
+  }
+  return buf;
+}
+
+function buildSynths(ac) {
+  for (const f of SYNTH_REFS) {
+    buffers["kanun_" + f] = synthKanun(ac, f);
+    buffers["ney_" + f] = synthNey(ac, f);
+  }
 }
 
 const VELS = [0, 0.8, 1.0, 0.5];
@@ -1152,9 +1255,11 @@ async function toggleMic() {
   const btn = $("micBtn"), st = $("micStatus");
   if (micRecorder && micRecorder.state === "recording") { micRecorder.stop(); return; }
   if (!navigator.mediaDevices || !window.MediaRecorder) { st.textContent = t("micNo"); return; }
+
+  let stream;
   try {
     // echo cancellation on, otherwise the mic records the loop coming out of the speakers
-    micStream = await navigator.mediaDevices.getUserMedia({
+    stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
   } catch (e) {
@@ -1162,31 +1267,49 @@ async function toggleMic() {
     return;
   }
   await initAudio();
-  const startAtQ = state.playing ? secToQ(((ctx.currentTime - loopStartTime) % loopDur() + loopDur()) % loopDur()) : 0;
+
+  const startAtQ = state.playing
+    ? secToQ(((ctx.currentTime - loopStartTime) % loopDur() + loopDur()) % loopDur()) : 0;
   const chunks = [];
-  micRecorder = new MediaRecorder(micStream);
-  micRecorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-  micRecorder.onstop = async () => {
-    micStream.getTracks().forEach(t2 => t2.stop());
+  const rec = new MediaRecorder(stream);
+  micRecorder = rec;
+  micStream = stream;
+
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onerror = () => { st.textContent = t("failed") + "recorder"; };
+  rec.onstop = async () => {
+    stream.getTracks().forEach(tr => tr.stop());
+    if (micRecorder === rec) micRecorder = null;
     btn.textContent = t("mic");
     btn.classList.remove("armed");
+    if (!chunks.length) { st.textContent = t("micEmpty"); return; }
     try {
-      const buf = await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
+      const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+      if (!buf || !buf.duration) { st.textContent = t("micEmpty"); return; }
       state.voice = buf;
-      // line the take up with the point in the loop where recording began
-      voiceBaseQ = startAtQ;
+      voiceBaseQ = startAtQ;                     // line the take up with where it began
       state.voiceOffsetQ = startAtQ;
       $("micOffset").value = 0;
       $("micClear").hidden = false;
       $("micOffset").parentElement.hidden = false;
       $("fxRow").hidden = false;
+      $("toNotes").hidden = false;
       drawWave();
       st.textContent = t("micSaved") + " " + buf.duration.toFixed(1) + "s";
     } catch (err) {
       st.textContent = t("failed") + err.message;
     }
   };
-  micRecorder.start();
+
+  try {
+    rec.start();
+  } catch (err) {
+    st.textContent = t("failed") + err.message;
+    stream.getTracks().forEach(tr => tr.stop());
+    micRecorder = null;
+    return;
+  }
   btn.textContent = t("micRec");
   btn.classList.add("armed");
   st.textContent = t("micOn");
@@ -1201,6 +1324,7 @@ function clearVoice() {
   $("micClear").hidden = true;
   $("micOffset").parentElement.hidden = true;
   $("fxRow").hidden = true;
+  $("toNotes").hidden = true;
   $("micStatus").textContent = "";
   drawWave();
 }
@@ -1233,6 +1357,111 @@ function drawWave() {
   cx.strokeStyle = cssVar("--muted");
   cx.globalAlpha = 0.4;
   cx.beginPath(); cx.moveTo(0, h / 2); cx.lineTo(w, h / 2); cx.stroke();
+}
+
+/* ---------- audio upload and melody detection ---------- */
+
+async function loadAudioFile(file) {
+  const st = $("micStatus");
+  await initAudio();
+  try {
+    state.voice = await ctx.decodeAudioData(await file.arrayBuffer());
+    voiceBaseQ = 0;
+    state.voiceOffsetQ = 0;
+    $("micOffset").value = 0;
+    $("micClear").hidden = false;
+    $("micOffset").parentElement.hidden = false;
+    $("fxRow").hidden = false;
+    $("toNotes").hidden = false;
+    drawWave();
+    st.textContent = t("fileLoaded") + " " + state.voice.duration.toFixed(1) + "s";
+  } catch (e) {
+    st.textContent = t("fileBad");
+  }
+}
+
+// YIN pitch estimate for one window. Monophonic material only.
+function yinPitch(d, start, win, sr) {
+  const maxLag = Math.min(Math.floor(sr / 65), Math.floor(win / 2));
+  const minLag = Math.floor(sr / 1100);
+  const diff = new Float32Array(maxLag);
+  for (let lag = minLag; lag < maxLag; lag++) {
+    let sum = 0;
+    for (let i = 0; i < win - maxLag; i++) {
+      const x = d[start + i] - d[start + i + lag];
+      sum += x * x;
+    }
+    diff[lag] = sum;
+  }
+  let run = 0;
+  const cm = new Float32Array(maxLag);
+  for (let lag = minLag; lag < maxLag; lag++) {
+    run += diff[lag];
+    cm[lag] = diff[lag] * (lag - minLag + 1) / (run || 1e-9);
+  }
+  let tau = -1;
+  for (let lag = minLag + 1; lag < maxLag - 1; lag++)
+    if (cm[lag] < 0.16 && cm[lag] <= cm[lag + 1]) { tau = lag; break; }
+  if (tau < 0) return 0;
+  const a = cm[tau - 1], b = cm[tau], c = cm[tau + 1];
+  const shift = (a - 2 * b + c) !== 0 ? 0.5 * (a - c) / (a - 2 * b + c) : 0;
+  return sr / (tau + shift);
+}
+
+function melodyToNotes() {
+  if (!state.voice) return;
+  const st = $("micStatus");
+  st.textContent = t("analysing");
+  setTimeout(() => {
+    const sr = state.voice.sampleRate, d = state.voice.getChannelData(0);
+    const win = 2048, hop = Math.floor(sr * 0.021);
+    const frames = [];
+    for (let i = 0; i + win < d.length; i += hop) {
+      let rms = 0;
+      for (let j = 0; j < win; j += 4) rms += d[i + j] * d[i + j];
+      rms = Math.sqrt(rms / (win / 4));
+      frames.push(rms < 0.012 ? 0 : yinPitch(d, i, win, sr));
+    }
+    // group neighbouring frames that hold the same pitch into notes
+    const segs = [];
+    let cur = null;
+    frames.forEach((f, i) => {
+      if (!f) { if (cur) { segs.push(cur); cur = null; } return; }
+      if (cur && Math.abs(1200 * Math.log2(f / cur.f)) < 70) {
+        cur.n++; cur.f = (cur.f * (cur.n - 1) + f) / cur.n;
+      } else {
+        if (cur) segs.push(cur);
+        cur = { start: i, n: 1, f };
+      }
+    });
+    if (cur) segs.push(cur);
+
+    const minFrames = Math.max(3, Math.round(0.07 / (hop / sr)));
+    const added = [];
+    for (const sg of segs) {
+      if (sg.n < minFrames) continue;
+      const tSec = sg.start * hop / sr + qToSec(state.voiceOffsetQ);
+      let q = secToQ(tSec) % loopQ();
+      let lenQ = secToQ(sg.n * hop / sr);
+      if ($("quantize").checked) {
+        q = Math.round(q / stepQ()) * stepQ();
+        lenQ = Math.max(stepQ(), Math.round(lenQ / stepQ()) * stepQ());
+      }
+      if (q < 0 || q >= loopQ()) continue;
+      let best = keys[0], bd = 1e9;                     // land it on a makam pitch
+      for (const k of keys) {
+        if (state.smart && !k.inScale) continue;
+        const dist = Math.abs(Math.log2(sg.f / keyFreq(k)));
+        if (dist < bd) { bd = dist; best = k; }
+      }
+      if (bd > 0.5) continue;                           // more than a fifth out, skip it
+      added.push({ q, lenQ, f: keyFreq(best), midi: best.midi, vel: 0.9 });
+    }
+    state.notes = state.notes.concat(added);
+    updateNoteCount();
+    renderRoll();
+    st.textContent = added.length ? added.length + " " + t("notesFound") : t("noMelody");
+  }, 30);
 }
 
 /* ---------- demo pieces ---------- */
@@ -1283,7 +1512,9 @@ function loadDemo(id) {
     return { q, f, midi: best.midi, vel: 0.9, lenQ: Math.max(0.05, len) };
   });
   syncControls();
+  updateWheelText();
   $("exportStatus").textContent = t("demoLoaded");
+  initAudio().then(() => { if (!state.playing) startPlayback(); });
 }
 
 /* ---------- Camelot wheel ---------- */
@@ -2134,6 +2365,14 @@ function init() {
   $("tour").addEventListener("click", e => { if (!e.target.closest(".tourbox")) closeTour(); });
   $("helpBtn").addEventListener("click", () => showTour(0));
   $("demoSel").addEventListener("change", e => { loadDemo(e.target.value); blur(e); });
+  $("instSel").addEventListener("change", e => {
+    state.inst = e.target.value;
+    $("instTitle").textContent = t(state.inst);
+    blur(e);
+  });
+  $("uploadBtn").addEventListener("click", () => $("audioFile").click());
+  $("audioFile").addEventListener("change", e => { if (e.target.files[0]) loadAudioFile(e.target.files[0]); });
+  $("toNotes").addEventListener("click", melodyToNotes);
   $("micBtn").addEventListener("click", toggleMic);
   $("micClear").addEventListener("click", clearVoice);
   $("micOffset").addEventListener("input", e => { state.voiceOffsetQ = voiceBaseQ + secToQ(+e.target.value); });
