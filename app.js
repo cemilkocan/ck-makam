@@ -24,8 +24,15 @@ const MAKAMS = {
   "Nihavend": { steps: [9, 4, 9, 9, 4, 9, 9], mood: "sad" }
 };
 
-const TONICS = [["G", 196.00], ["A", 220.00], ["Bb", 233.08],
-                ["B", 246.94], ["C", 261.63], ["D", 293.66]];
+const TONICS = [["G", 196.00], ["G#", 207.65], ["A", 220.00], ["A#", 233.08],
+                ["B", 246.94], ["C", 261.63], ["C#", 277.18], ["D", 293.66],
+                ["D#", 311.13], ["E", 329.63], ["F", 349.23], ["F#", 369.99]];
+
+// Camelot codes. Minor-leaning makams sit on the A ring, major-leaning ones on B.
+const CAMELOT_A = { "G#": 1, "D#": 2, "A#": 3, F: 4, C: 5, G: 6, D: 7, A: 8, E: 9, B: 10, "F#": 11, "C#": 12 };
+const CAMELOT_B = { B: 1, "F#": 2, "C#": 3, "G#": 4, "D#": 5, "A#": 6, F: 7, C: 8, G: 9, D: 10, A: 11, E: 12 };
+const A_ROOT = Object.fromEntries(Object.entries(CAMELOT_A).map(([k, v]) => [v, k]));
+const B_ROOT = Object.fromEntries(Object.entries(CAMELOT_B).map(([k, v]) => [v, k]));
 
 const DRUM_ROWS = ["doum", "tek", "tekhi", "mid", "mute",
                    "davul_dum", "davul_tek", "bendir", "zil", "tef", "snare", "clap"];
@@ -70,6 +77,9 @@ const I18N = {
     smartHelp: "Açıkken dizi dışı tuşlar en yakın makam perdesine kayar, yanlış nota çalamazsın. Kapatırsan klavye tam kromatik olur, diyezler kendi sesini verir.",
     record: "Kayıt", recording: "Kaydediyor", quantize: "Gride yapış", undo: "Geri al",
     notes: "nota", export: "İndir", loops: "Tekrar", save: "Projeyi kaydet", load: "Proje aç",
+    video: "Dikey video", share: "Paylaşım linki", linkCopied: "Link kopyalandı, yapıştırıp paylaşabilirsin.",
+    linkFail: "Link kopyalanamadı, adres çubuğundan alabilirsin.", linkLoaded: "Paylaşılan loop açıldı.",
+    videoRec: "Video çekiliyor, bitene kadar bekle...", videoNo: "Bu tarayıcı video kaydını desteklemiyor, Chrome dene.",
     rendering: "Hazırlanıyor...", encoding: "MP3 kodlanıyor...", packing: "Paketleniyor...",
     done: "Bitti.", failed: "Hata: ", loaded: "Proje yüklendi.",
     strong: "Güçlü", normal: "Normal", soft: "Hafif", off: "Boş",
@@ -109,6 +119,17 @@ const I18N = {
       "Hüzzam": "Dokunaklı, kıvrımlı. Hicaz'a benzer ama karar sesi başka yerde durur.",
       "Nihavend": "Romantik ve üzgün. Batı minörünün karşılığı."
     },
+    wheel: "Camelot tekerleği", wheelNow: "Şu an", wheelFit: "Uyumlu",
+    wheelHelp: "DJ'lerin uyumlu geçiş için kullandığı tekerlek. Kendi kodunun yanındaki iki komşu ve karşısındaki harf, yan yana çalınca kulağı rahatsız etmeyen tonlardır. Makamlar koma perdeler içerdiği için bu eşleşme yaklaşıktır, kesin değil. Tekerlekten bir koda tıklayınca karar sesi ve makam ona göre ayarlanır.",
+    makamUse: {
+      "Hicaz": "Arabesk, ağır romantik parçalar, dramatik giriş bölümleri. Özlem ve ayrılık anlatmak için.",
+      "Rast": "Açılış parçaları, yürüyen ve umut veren bölümler. Dinleyiciyi yormaz, uzun çalınır.",
+      "Çargah": "Çocuk şarkıları, marşlar, neşeli ve basit melodiler. Batı kulağına en yakın duran makam.",
+      "Uşşak": "Türküler, ninni ve ağıt arası sakin ezgiler. İçini dökerken kullanılır.",
+      "Kürdi": "Hüzünlü ama yalın parçalar. Az notayla çok şey anlatmak isteyen için uygun.",
+      "Hüzzam": "Duygusal doruk noktaları, taksim ve uzun soluklu şarkılar. Dokunaklı anlar için.",
+      "Nihavend": "Romantik şarkılar, film müziği, modern düzenlemeler. Batı armonisiyle en kolay birleşen makam."
+    },
     tourTitle: "CK Makam'a hoş geldin",
     tourSkip: "Atla", tourNext: "İleri", tourPrev: "Geri", tourDone: "Başla",
     tour: [
@@ -128,6 +149,9 @@ const I18N = {
     smartHelp: "When on, out-of-scale keys snap to the nearest makam pitch, so you cannot play a wrong note. Turn it off for a fully chromatic keyboard where sharps play their own pitch.",
     record: "Record", recording: "Recording", quantize: "Snap to grid", undo: "Undo",
     notes: "notes", export: "Export", loops: "Loops", save: "Save project", load: "Open project",
+    video: "Vertical video", share: "Share link", linkCopied: "Link copied, paste it anywhere to share.",
+    linkFail: "Could not copy the link, take it from the address bar.", linkLoaded: "Shared loop opened.",
+    videoRec: "Recording the video, hold on...", videoNo: "This browser cannot record video, try Chrome.",
     rendering: "Rendering...", encoding: "Encoding MP3...", packing: "Packing...",
     done: "Done.", failed: "Error: ", loaded: "Project loaded.",
     strong: "Strong", normal: "Normal", soft: "Soft", off: "Off",
@@ -166,6 +190,17 @@ const I18N = {
       "Kürdi": "Sad and plain. The flat second gives it a dark colour from the first note.",
       "Hüzzam": "Poignant and winding. Close to Hicaz but it comes to rest elsewhere.",
       "Nihavend": "Romantic and sad. The equivalent of the Western minor scale."
+    },
+    wheel: "Camelot wheel", wheelNow: "Now", wheelFit: "Mixes with",
+    wheelHelp: "The wheel DJs use for harmonic mixing. Your own code, its two neighbours and the opposite letter sit well next to each other. Makams use comma pitches, so the match is approximate rather than exact. Click a code and the tonic and makam follow it.",
+    makamUse: {
+      "Hicaz": "Arabesque, slow romantic songs, dramatic openings. For longing and parting.",
+      "Rast": "Opening pieces, walking and hopeful sections. Easy on the ear over a long stretch.",
+      "Çargah": "Children's songs, marches, simple cheerful tunes. The closest to a Western ear.",
+      "Uşşak": "Folk songs, somewhere between a lullaby and a lament. For quiet confession.",
+      "Kürdi": "Sad but plain pieces. Good when you want to say a lot with few notes.",
+      "Hüzzam": "Emotional peaks, taksim improvisations, long songs. For the moments that ache.",
+      "Nihavend": "Romantic songs, film music, modern arrangements. The easiest makam to pair with Western harmony."
     },
     tourTitle: "Welcome to CK Makam",
     tourSkip: "Skip", tourNext: "Next", tourPrev: "Back", tourDone: "Start",
@@ -711,7 +746,7 @@ const DRUM_KEYS = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM"];
 
 function onKeyDown(e) {
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key === "Escape") { hideTip(); return; }
+  if (e.key === "Escape") { hideTip(); if (!$("tour").hidden) closeTour(); return; }
   const tag = (e.target.tagName || "").toLowerCase();
   if (tag === "input" || tag === "select" || tag === "textarea") return;
   if (!$("tour").hidden) return;
@@ -931,6 +966,352 @@ async function doExport(kind) {
   setTimeout(() => { if (status.textContent === t("done")) status.textContent = ""; }, 4000);
 }
 
+/* ---------- Camelot wheel ---------- */
+
+const tonicName = () => (TONICS.find(x => Math.abs(x[1] - state.tonic) < 0.01) || TONICS[2])[0];
+const isMajorish = () => MAKAMS[state.makam].mood === "happy";
+
+function currentCode() {
+  const root = tonicName();
+  return isMajorish() ? { n: CAMELOT_B[root], l: "B" } : { n: CAMELOT_A[root], l: "A" };
+}
+
+function compatibleCodes() {
+  const c = currentCode();
+  const wrap = n => ((n - 1 + 12) % 12) + 1;
+  return [{ n: c.n, l: c.l === "A" ? "B" : "A" },
+          { n: wrap(c.n - 1), l: c.l }, { n: wrap(c.n + 1), l: c.l }];
+}
+
+function arcPath(cx, cy, r0, r1, a0, a1) {
+  const p = (r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const [x0, y0] = p(r1, a0), [x1, y1] = p(r1, a1), [x2, y2] = p(r0, a1), [x3, y3] = p(r0, a0);
+  return `M${x0} ${y0}A${r1} ${r1} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`;
+}
+
+function renderWheel() {
+  const svg = $("wheel");
+  if (!svg) return;
+  const S = 300, c = S / 2;
+  const cur = currentCode(), fit = compatibleCodes();
+  const isCur = (n, l) => cur.n === n && cur.l === l;
+  const isFit = (n, l) => fit.some(f => f.n === n && f.l === l);
+
+  let out = "";
+  for (let i = 0; i < 12; i++) {
+    const n = i + 1;
+    const a0 = ((i * 30) - 90 - 15) * Math.PI / 180;
+    const a1 = (((i + 1) * 30) - 90 - 15) * Math.PI / 180;
+    const am = (a0 + a1) / 2;
+    for (const [l, r0, r1, rt] of [["B", 96, 140, 118], ["A", 50, 94, 72]]) {
+      const cls = isCur(n, l) ? "seg cur" : isFit(n, l) ? "seg fit" : "seg";
+      out += `<path class="${cls}" d="${arcPath(c, c, r0, r1, a0, a1)}" data-n="${n}" data-l="${l}"></path>`;
+      out += `<text class="segtxt" x="${c + rt * Math.cos(am)}" y="${c + rt * Math.sin(am) + 4}">${n}${l}</text>`;
+    }
+  }
+  svg.innerHTML = out;
+  svg.querySelectorAll(".seg").forEach(p => p.addEventListener("click", () => {
+    const n = +p.dataset.n, l = p.dataset.l;
+    const root = l === "A" ? A_ROOT[n] : B_ROOT[n];
+    const entry = TONICS.find(x => x[0] === root);
+    if (entry) state.tonic = entry[1];
+    const wantHappy = l === "B";
+    if (isMajorish() !== wantHappy)
+      state.makam = Object.keys(MAKAMS).find(m => (MAKAMS[m].mood === "happy") === wantHappy) || state.makam;
+    $("shift").value = state.tonic;
+    $("makam").value = state.makam;
+    renderKeys();
+    updateWheelText();
+  }));
+  updateWheelText();
+}
+
+function updateWheelText() {
+  const cur = currentCode();
+  $("wheelNow").textContent = t("wheelNow") + ": " + cur.n + cur.l + " (" + tonicName() + " " + state.makam + ")";
+  $("wheelFit").textContent = t("wheelFit") + ": " + compatibleCodes().map(f => f.n + f.l).join(", ");
+  $("makamUse").textContent = t("makamUse")[state.makam] || "";
+  renderWheelSegments();
+}
+
+function renderWheelSegments() {
+  const svg = $("wheel");
+  if (!svg) return;
+  const cur = currentCode(), fit = compatibleCodes();
+  svg.querySelectorAll(".seg").forEach(p => {
+    const n = +p.dataset.n, l = p.dataset.l;
+    p.classList.toggle("cur", cur.n === n && cur.l === l);
+    p.classList.toggle("fit", fit.some(f => f.n === n && f.l === l));
+  });
+}
+
+/* ---------- shareable link: the whole loop lives in the URL, no server ---------- */
+
+function bytesToUrl(bytes) {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function urlToBytes(s) {
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function encodeState() {
+  const steps = totalSteps(), gridBytes = Math.ceil(steps / 4);
+  const b = [];
+  b.push(1, Math.round(state.bpm) - 60,
+    Object.keys(USULS).indexOf(state.usul), state.bars, Math.round(state.swing * 100),
+    Object.keys(MAKAMS).indexOf(state.makam),
+    Math.max(0, TONICS.findIndex(x => Math.abs(x[1] - state.tonic) < 0.01)),
+    (state.smart ? 1 : 0) | (state.strings === "plastic" ? 2 : 0), steps);
+  let mask = 0;
+  DRUM_ROWS.forEach((r, i) => { if (state.muted.has(r)) mask |= 1 << i; });
+  b.push(mask & 255, (mask >> 8) & 255);
+  for (const row of DRUM_ROWS)
+    for (let i = 0; i < gridBytes; i++) {
+      let v = 0;
+      for (let k = 0; k < 4; k++) {
+        const idx = i * 4 + k;
+        if (idx < steps) v |= (state.grid[row][idx] & 3) << (k * 2);
+      }
+      b.push(v);
+    }
+  const notes = state.notes.slice(0, 255);
+  const tick = loopDur() / (steps * 4);
+  b.push(notes.length);
+  for (const n of notes) {
+    const ti = Math.round(n.t / tick);
+    b.push(ti & 255, (ti >> 8) & 255, n.midi & 127,
+      Math.round(Math.min(1, n.vel || 0.9) * 127),
+      Math.max(1, Math.min(255, Math.round((n.len || tick * 4) / tick))));
+  }
+  return bytesToUrl(Uint8Array.from(b));
+}
+
+function decodeState(str) {
+  const b = urlToBytes(str);
+  let p = 0;
+  if (b[p++] !== 1) throw new Error("version");
+  state.bpm = b[p++] + 60;
+  state.usul = Object.keys(USULS)[b[p++]] || state.usul;
+  state.bars = b[p++] || 2;
+  state.swing = b[p++] / 100;
+  state.makam = Object.keys(MAKAMS)[b[p++]] || state.makam;
+  state.tonic = (TONICS[b[p++]] || TONICS[1])[1];
+  const flags = b[p++];
+  state.smart = !!(flags & 1);
+  state.strings = flags & 2 ? "plastic" : "metal";
+  const steps = b[p++];
+  const mask = b[p++] | (b[p++] << 8);
+  state.muted = new Set(DRUM_ROWS.filter((r, i) => mask & (1 << i)));
+
+  initGrid(false);
+  const gridBytes = Math.ceil(steps / 4);
+  for (const row of DRUM_ROWS)
+    for (let i = 0; i < gridBytes; i++) {
+      const v = b[p++];
+      for (let k = 0; k < 4; k++) {
+        const idx = i * 4 + k;
+        if (idx < steps && idx < state.grid[row].length) state.grid[row][idx] = (v >> (k * 2)) & 3;
+      }
+    }
+  const count = b[p++];
+  const tick = loopDur() / (totalSteps() * 4);
+  buildKeys();
+  state.notes = [];
+  for (let i = 0; i < count; i++) {
+    const ti = b[p] | (b[p + 1] << 8); p += 2;
+    const midi = b[p++], vel = b[p++] / 127, len = b[p++];
+    const k = keys.find(x => x.midi === midi) || keys[0];
+    state.notes.push({ t: ti * tick, midi, vel, len: len * tick, f: keyFreq(k) });
+  }
+}
+
+function syncControls() {
+  $("bpm").value = $("bpmRange").value = state.bpm;
+  $("usul").value = state.usul;
+  $("bars").value = state.bars;
+  $("swing").value = state.swing;
+  $("makam").value = state.makam;
+  $("shift").value = state.tonic;
+  $("smart").checked = state.smart;
+  $("strings").value = state.strings;
+  if (nodes) {
+    const metalOn = state.strings === "metal";
+    nodes.metal.gain.value = metalOn ? 1 : 0;
+    nodes.plastic.gain.value = metalOn ? 0 : 1;
+  }
+  renderGrid();
+  renderKeys();
+  updateWheelText();
+  updateNoteCount();
+}
+
+async function shareLink() {
+  const url = location.origin + location.pathname + "#p=" + encodeState();
+  history.replaceState(null, "", url);
+  try {
+    await navigator.clipboard.writeText(url);
+    $("exportStatus").textContent = t("linkCopied");
+  } catch (e) {
+    $("exportStatus").textContent = t("linkFail");
+  }
+}
+
+function loadFromHash() {
+  if (!location.hash.startsWith("#p=")) return false;
+  try {
+    decodeState(location.hash.slice(3));
+    syncControls();
+    $("exportStatus").textContent = t("linkLoaded");
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* ---------- vertical video for Reels and Shorts ---------- */
+
+function pickVideoMime() {
+  if (!window.MediaRecorder) return null;
+  const cands = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4",
+                 "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+  for (const c of cands) if (MediaRecorder.isTypeSupported(c)) return c;
+  return null;
+}
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function drawVideoFrame(cx, W, H, pos) {
+  const col = {
+    bg: cssVar("--bg"), panel: cssVar("--panel2"), ink: cssVar("--ink"),
+    muted: cssVar("--muted"), accent: cssVar("--accent"), accent2: cssVar("--accent2"),
+    line: cssVar("--line")
+  };
+  cx.fillStyle = col.bg;
+  cx.fillRect(0, 0, W, H);
+
+  cx.fillStyle = col.ink;
+  cx.font = "700 54px 'Segoe UI', system-ui, sans-serif";
+  cx.textAlign = "center";
+  cx.fillText("CK Makam", W / 2, 110);
+  cx.fillStyle = col.muted;
+  cx.font = "400 30px 'Segoe UI', system-ui, sans-serif";
+  cx.fillText(state.makam + "  ·  " + state.usul.replace(/\s*\(.*\)/, "") + "  ·  " + Math.round(state.bpm) + " BPM", W / 2, 160);
+
+  // piano roll strip, one loop wide, scrolling right to left past a fixed playhead
+  const rx = 40, rw = W - 80, ry = 230, rh = 620;
+  cx.fillStyle = col.panel;
+  cx.fillRect(rx, ry, rw, rh);
+  const laneCount = keys.length, lh = rh / laneCount;
+  for (let i = 0; i < laneCount; i++) {
+    const k = keys[laneCount - 1 - i];
+    if (!k.white) { cx.fillStyle = "rgba(0,0,0,0.25)"; cx.fillRect(rx, ry + i * lh, rw, lh); }
+  }
+  const playX = rx + rw * 0.36, pps = rw / loopDur();
+  cx.save();
+  cx.beginPath(); cx.rect(rx, ry, rw, rh); cx.clip();
+  for (const n of state.notes) {
+    const li = laneCount - 1 - keys.findIndex(k => k.midi === n.midi);
+    if (li < 0) continue;
+    for (const off of [-1, 0, 1]) {
+      const x = playX + (n.t + off * loopDur() - pos) * pps;
+      const w = Math.max(6, (n.len || stepDur()) * pps);
+      if (x > rx + rw || x + w < rx) continue;
+      const live = x <= playX && x + w >= playX;
+      cx.fillStyle = live ? col.accent2 : col.accent;
+      cx.fillRect(x, ry + li * lh + 1, w, lh - 2);
+    }
+  }
+  cx.restore();
+  cx.fillStyle = col.ink;
+  cx.fillRect(playX - 2, ry, 4, rh);
+
+  // drum pads, lighting on the current step
+  const steps = totalSteps(), cur = Math.floor(pos / stepDur()) % steps;
+  const used = DRUM_ROWS.filter(r => !state.muted.has(r) && state.grid[r].some(v => v));
+  const py = 910, padH = 54, gap = 12;
+  cx.textAlign = "left";
+  used.slice(0, 5).forEach((row, i) => {
+    const y = py + i * (padH + gap);
+    cx.fillStyle = col.muted;
+    cx.font = "400 24px 'Segoe UI', system-ui, sans-serif";
+    cx.fillText(I18N[lang].drums[row], rx, y + 36);
+    const bx = rx + 210, bw = W - rx - 210 - 40, cw = bw / steps;
+    for (let s = 0; s < steps; s++) {
+      const v = state.grid[row][s];
+      cx.fillStyle = !v ? col.panel : (s === cur ? col.ink : (v === 2 ? col.accent2 : v === 3 ? cssVar("--soft") : col.accent));
+      cx.fillRect(bx + s * cw + 1, y + 10, cw - 2, padH - 20);
+    }
+  });
+
+  cx.fillStyle = col.muted;
+  cx.font = "400 28px 'Segoe UI', system-ui, sans-serif";
+  cx.textAlign = "center";
+  cx.fillText("cemilkocan.github.io/ck-makam", W / 2, H - 60);
+}
+
+async function exportVideo() {
+  const status = $("exportStatus");
+  const mime = pickVideoMime();
+  if (!mime) { status.textContent = t("videoNo"); return; }
+  await initAudio();
+  if (state.playing) stopPlayback();
+
+  let repeats = parseInt($("repeats").value, 10);
+  while (loopDur() * repeats > 35 && repeats > 1) repeats--;
+  status.textContent = t("rendering");
+  const buf = await renderOffline(repeats, { drums: true, baglama: true });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 720; canvas.height = 1280;
+  const cx = canvas.getContext("2d");
+  drawVideoFrame(cx, canvas.width, canvas.height, 0);
+
+  const ac = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+  const dest = ac.createMediaStreamDestination();
+  const src = ac.createBufferSource();
+  src.buffer = buf;
+  src.connect(dest);
+  src.connect(ac.destination);
+
+  const vs = canvas.captureStream(30);
+  const stream = new MediaStream([...vs.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5000000 });
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  const finished = new Promise(r => { rec.onstop = r; });
+
+  status.textContent = t("videoRec");
+  rec.start();
+  const t0 = ac.currentTime + 0.15;
+  src.start(t0);
+
+  await new Promise(resolve => {
+    const tick = () => {
+      const p = ac.currentTime - t0;
+      if (p >= buf.duration - 0.25) { resolve(); return; }
+      drawVideoFrame(cx, canvas.width, canvas.height, Math.max(0, p) % loopDur());
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+
+  rec.stop();
+  await finished;
+  try { src.stop(); } catch (e) {}
+  ac.close();
+  const ext = mime.startsWith("video/mp4") ? "mp4" : "webm";
+  download(new Blob(chunks, { type: mime }), "ck-makam-" + stamp() + "." + ext);
+  status.textContent = t("done");
+  setTimeout(() => { if (status.textContent === t("done")) status.textContent = ""; }, 4000);
+}
+
 /* ---------- project files ---------- */
 
 function saveProject() {
@@ -1029,6 +1410,9 @@ function wireHelp(btnId, getText) {
 
 /* ---------- first-run tour ---------- */
 
+// Each tour step points at the control it is talking about.
+const TOUR_TARGETS = ["#play", "#grid", "#usul", "#makam", "#rec", ".export-row"];
+
 function showTour(step) {
   tourStep = Math.max(0, Math.min(step, t("tour").length - 1));
   const [title, body] = t("tour")[tourStep];
@@ -1038,10 +1422,40 @@ function showTour(step) {
   $("tourPrev").disabled = tourStep === 0;
   $("tourNext").textContent = tourStep === t("tour").length - 1 ? t("tourDone") : t("tourNext");
   $("tour").hidden = false;
+  if ($("drumBody").hidden && ["#grid", "#usul"].includes(TOUR_TARGETS[tourStep])) setCollapsed(false);
+  requestAnimationFrame(() => placeTour(TOUR_TARGETS[tourStep]));
+}
+
+function placeTour(sel) {
+  const el = sel && document.querySelector(sel);
+  const spot = $("spot"), box = $("tourBox");
+  if (!el) {
+    spot.hidden = true;
+    box.style.top = Math.max(16, (window.innerHeight - box.offsetHeight) / 2) + "px";
+    box.style.left = Math.max(12, (window.innerWidth - box.offsetWidth) / 2) + "px";
+    return;
+  }
+  el.scrollIntoView({ block: "center", inline: "nearest" });
+  requestAnimationFrame(() => {
+    const r = el.getBoundingClientRect(), pad = 8;
+    spot.hidden = false;
+    spot.style.left = r.left - pad + "px";
+    spot.style.top = r.top - pad + "px";
+    spot.style.width = r.width + pad * 2 + "px";
+    spot.style.height = r.height + pad * 2 + "px";
+
+    const bw = box.offsetWidth, bh = box.offsetHeight;
+    let top = r.bottom + 18;
+    if (top + bh > window.innerHeight - 12) top = r.top - bh - 18;
+    if (top < 12) top = Math.min(window.innerHeight - bh - 12, Math.max(12, r.bottom + 18));
+    box.style.top = top + "px";
+    box.style.left = Math.max(12, Math.min(window.innerWidth - bw - 12, r.left + r.width / 2 - bw / 2)) + "px";
+  });
 }
 
 function closeTour() {
   $("tour").hidden = true;
+  $("spot").hidden = true;
   try { localStorage.setItem("ckm_tour", "done"); } catch (e) {}
 }
 
@@ -1106,6 +1520,7 @@ function applyLang() {
   renderLegend();
   renderGrid();
   renderKeys();
+  renderWheel();
   updateNoteCount();
   if (!$("tour").hidden) showTour(tourStep);
 }
@@ -1174,8 +1589,8 @@ function init() {
     renderGrid();
     blur(e);
   });
-  $("makam").addEventListener("change", e => { state.makam = e.target.value; renderKeys(); blur(e); });
-  $("shift").addEventListener("change", e => { state.tonic = +e.target.value; renderKeys(); blur(e); });
+  $("makam").addEventListener("change", e => { state.makam = e.target.value; renderKeys(); updateWheelText(); blur(e); });
+  $("shift").addEventListener("change", e => { state.tonic = +e.target.value; renderKeys(); updateWheelText(); blur(e); });
   $("smart").addEventListener("change", e => { state.smart = e.target.checked; renderKeys(); });
   $("strings").addEventListener("change", e => {
     state.strings = e.target.value;
@@ -1205,6 +1620,7 @@ function init() {
   wireHelp("smartHelp", () => t("smartHelp"));
   wireHelp("gridHelp", () => t("gridHint"));
   wireHelp("rollHelp", () => t("rollHint"));
+  wireHelp("wheelHelp", () => t("wheelHelp"));
   document.addEventListener("click", e => {
     if (!e.target.closest(".help") && !e.target.closest("#tip")) hideTip();
   });
@@ -1215,20 +1631,32 @@ function init() {
   document.querySelectorAll("[data-export]").forEach(b =>
     b.addEventListener("click", () => doExport(b.dataset.export)));
 
-  $("tourNext").addEventListener("click", () =>
-    tourStep === t("tour").length - 1 ? closeTour() : showTour(tourStep + 1));
-  $("tourPrev").addEventListener("click", () => showTour(tourStep - 1));
-  $("tourSkip").addEventListener("click", closeTour);
+  $("tourNext").addEventListener("click", e => {
+    e.stopPropagation();
+    tourStep === t("tour").length - 1 ? closeTour() : showTour(tourStep + 1);
+  });
+  $("tourPrev").addEventListener("click", e => { e.stopPropagation(); showTour(tourStep - 1); });
+  $("tourSkip").addEventListener("click", e => { e.stopPropagation(); closeTour(); });
+  $("tour").addEventListener("click", e => { if (!e.target.closest(".tourbox")) closeTour(); });
   $("helpBtn").addEventListener("click", () => showTour(0));
+  $("shareBtn").addEventListener("click", shareLink);
+  $("videoBtn").addEventListener("click", exportVideo);
 
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   let rt;
-  window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderKeys, 200); });
+  window.addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      renderKeys();
+      if (!$("tour").hidden) placeTour(TOUR_TARGETS[tourStep]);
+    }, 200);
+  });
 
+  const fromLink = loadFromHash();
   let seen = false;
   try { seen = localStorage.getItem("ckm_tour") === "done"; } catch (e) {}
-  if (!seen) showTour(0);
+  if (!seen && !fromLink) showTour(0);
 }
 
 init();

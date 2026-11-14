@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <header class="top">
@@ -81,6 +81,21 @@
 
   <section class="panel">
     <div class="panel-head">
+      <h2 data-i18n="wheel">Camelot tekerleği</h2>
+      <button id="wheelHelp" class="help" aria-label="?">?</button>
+    </div>
+    <div class="wheelrow">
+      <svg id="wheel" viewBox="0 0 300 300" width="300" height="300" aria-label="Camelot"></svg>
+      <div class="wheelinfo">
+        <p id="wheelNow" class="now"></p>
+        <p id="wheelFit" class="muted"></p>
+        <p id="makamUse"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
       <h2 data-i18n="export">İndir</h2>
       <label><span data-i18n="loops">Tekrar</span> <select id="repeats"><option>1</option><option>2</option><option selected>4</option><option>8</option></select></label>
     </div>
@@ -88,6 +103,8 @@
       <button data-export="mp3">MP3 320</button>
       <button data-export="wav">WAV</button>
       <button data-export="stems">Stems (ZIP)</button>
+      <button id="videoBtn" data-i18n="video">Dikey video</button>
+      <button id="shareBtn" class="ghost" data-i18n="share">Paylaşım linki</button>
       <button id="saveBtn" class="ghost" data-i18n="save">Projeyi kaydet</button>
       <button id="loadBtn" class="ghost" data-i18n="load">Proje aç</button>
       <input type="file" id="loadFile" accept=".json" hidden>
@@ -108,7 +125,8 @@
 <div id="tip" class="tip" hidden></div>
 
 <div id="tour" class="tour" hidden>
-  <div class="tourbox" role="dialog" aria-modal="true">
+  <div id="spot" hidden></div>
+  <div class="tourbox" id="tourBox" role="dialog" aria-modal="true">
     <h3 id="tourTitle"></h3>
     <p id="tourText"></p>
     <div class="tourfoot">
@@ -121,6 +139,6 @@
   </div>
 </div>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
