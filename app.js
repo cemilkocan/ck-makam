@@ -120,7 +120,11 @@ const I18N = {
       "Nihavend": "Romantik ve üzgün. Batı minörünün karşılığı."
     },
     wheel: "Camelot tekerleği", wheelNow: "Şu an", wheelFit: "Uyumlu",
-    wheelHelp: "DJ'lerin uyumlu geçiş için kullandığı tekerlek. Kendi kodunun yanındaki iki komşu ve karşısındaki harf, yan yana çalınca kulağı rahatsız etmeyen tonlardır. Makamlar koma perdeler içerdiği için bu eşleşme yaklaşıktır, kesin değil. Tekerlekten bir koda tıklayınca karar sesi ve makam ona göre ayarlanır.",
+    wheelHelp: "Tekerlekten bir koda tıklayınca karar sesi ve makam ona göre ayarlanır. Aşağıdaki açıklamada sistemin nasıl çalıştığı yazıyor.",
+    learn: "Bunlar ne demek?",
+    learnCamelot: "Camelot, tonları numara ve harfle adlandıran bir sistem. Numara sesin çemberdeki yerini, harf de rengini gösteriyor: A koyu (minör) taraf, B açık (majör) taraf. 8A la minör demek, 8B do majör demek.\n\nİşe yarar yanı şu: kendi kodunun yanındaki iki numara ve aynı numaranın diğer harfi, seninkiyle neredeyse aynı notaları paylaşır. 8A çalıyorsan 7A, 9A ve 8B'ye geçmek kulağı tırmalamaz. DJ'ler iki şarkıyı birleştirirken bunu kullanıyor ama tek bir parçanın içinde bölümden bölüme geçerken de aynısı geçerli. Türkiye'de pek bilinmiyor, oysa akordeon gibi basit bir pusula.\n\nİki hamle daha var, tekerlek göstermez: yarım ses yukarı çıkmak enerjiyi yükseltir, nakarat öncesi çok kullanılır. Aynı kökü koruyup majörden minöre düşmek de kulakta doğal durur, çünkü karar sesi değişmez.",
+    learnKoma: "Batı müziğinde oktav 12 eşit yarım sese bölünür, piyanonun tuşları bunlardır. Türk makam müziğinde ise oktav 53 küçük parçaya bölünür, her birine koma denir. Bir tam ses 9 koma, yarım ses dediğimiz aralık 4 ya da 5 koma tutar.\n\nBunun sonucu şu: piyanonun iki tuşu arasına düşen, tuşu olmayan sesler vardır. Makamı makam yapan perdeler çoğunlukla oralardadır. Hicaz'ın ikinci perdesi hiçbir piyano tuşuna oturmaz, iki tuşun arasında durur. Bağlamanın gitardan çok daha fazla perdesi olmasının sebebi de budur.\n\nBu uygulamada hesap arka planda yapılıyor. Sen sadece makamı seçiyorsun, her nota kendi koma perdesine çekiliyor. Camelot ise majör ve minör üzerine kurulu olduğu için eşleşme yaklaşık kalıyor: Nihavend ve Çargah'ta neredeyse birebir, Hicaz ve Hüzzam'da payı geniş tut.",
+    learnKomaT: "Koma perde nedir?", learnCamelotT: "Camelot nasıl okunur?",
     makamUse: {
       "Hicaz": "Arabesk, ağır romantik parçalar, dramatik giriş bölümleri. Özlem ve ayrılık anlatmak için.",
       "Rast": "Açılış parçaları, yürüyen ve umut veren bölümler. Dinleyiciyi yormaz, uzun çalınır.",
@@ -192,7 +196,11 @@ const I18N = {
       "Nihavend": "Romantic and sad. The equivalent of the Western minor scale."
     },
     wheel: "Camelot wheel", wheelNow: "Now", wheelFit: "Mixes with",
-    wheelHelp: "The wheel DJs use for harmonic mixing. Your own code, its two neighbours and the opposite letter sit well next to each other. Makams use comma pitches, so the match is approximate rather than exact. Click a code and the tonic and makam follow it.",
+    wheelHelp: "Click a code and the tonic and makam follow it. The notes below explain how the system works.",
+    learn: "What do these mean?",
+    learnCamelot: "Camelot names keys with a number and a letter. The number is the position on the circle, the letter is the colour: A is the dark side (minor), B the bright side (major). 8A is A minor, 8B is C major.\n\nWhy it helps: the two numbers either side of yours, and the other letter on your own number, share almost all their notes with you. If you are on 8A, moving to 7A, 9A or 8B will not jar. DJs use it to blend two tracks, but the same holds inside one piece when you move from section to section.\n\nTwo more moves the wheel does not show: going up a semitone lifts the energy, which is why it turns up before a chorus. Keeping the same root and dropping from major to minor also sounds natural, because the home note never moves.",
+    learnKoma: "In Western music the octave is split into 12 equal semitones, the keys of a piano. In Turkish makam music the octave is split into 53 small parts called commas. A whole tone is 9 commas, what we call a semitone is 4 or 5.\n\nThe result: there are pitches that fall between two piano keys, with no key of their own. The notes that make a makam what it is usually live there. The second degree of Hicaz lands on no piano key at all. This is also why a bağlama has far more frets than a guitar.\n\nThis app does that arithmetic in the background. You pick the makam and every note is pulled to its own comma pitch. Camelot, built on major and minor, can only approximate it: close to exact in Nihavend and Çargah, rough in Hicaz and Hüzzam.",
+    learnKomaT: "What is a comma pitch?", learnCamelotT: "How do you read Camelot?",
     makamUse: {
       "Hicaz": "Arabesque, slow romantic songs, dramatic openings. For longing and parting.",
       "Rast": "Opening pieces, walking and hopeful sections. Easy on the ear over a long stretch.",
@@ -1546,6 +1554,8 @@ function applyLang() {
     s.appendChild(o);
   }
   $("rec").textContent = state.recording ? t("recording") : t("record");
+  for (const k of ["learnKomaT", "learnCamelotT", "learnKoma", "learnCamelot"])
+    $(k).textContent = t(k);
   $("tourSkip").textContent = t("tourSkip");
   $("tourPrev").textContent = t("tourPrev");
   setPlayIcon();
