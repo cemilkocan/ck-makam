@@ -86,6 +86,14 @@ main { max-width: 1060px; margin: 0 auto; padding: 16px; display: grid; gap: 16p
 .panel-head h2 { margin: 0 8px 0 0; font-size: 18px; }
 .vol { margin-left: auto; }
 .hint { color: var(--muted); font-size: 13px; margin: 8px 0 10px; }
+.legend { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; color: var(--muted); font-size: 13px; margin: 8px 0 10px; }
+.legend .sw { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--line); display: inline-block; }
+.legend .sw.normal { background: var(--accent); border-color: transparent; }
+.legend .sw.accent { background: var(--accent2); border-color: transparent; }
+.legend .sw.soft { background: #7a4a33; border-color: transparent; }
+.legend .sw.off { background: var(--panel2); }
+.legend .gap { width: 8px; }
+.key.outscale { opacity: 0.45; }
 .muted { color: var(--muted); font-size: 13px; }
 
 .grid { display: grid; gap: 4px; overflow-x: auto; padding-bottom: 4px; }

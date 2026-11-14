@@ -17,11 +17,49 @@ const BAGLAMA_F0 = {
 const MAKAMS = {
   "Hicaz":    [5, 12, 5, 9, 8, 5, 9],
   "Rast":     [9, 8, 5, 9, 9, 8, 5],
-  "Ussak":    [8, 5, 9, 9, 8, 5, 9],
-  "Kurdi":    [4, 9, 9, 9, 4, 9, 9],
-  "Huzzam":   [5, 9, 5, 12, 5, 9, 8],
+  "Uşşak":    [8, 5, 9, 9, 8, 5, 9],
+  "Kürdi":    [4, 9, 9, 9, 4, 9, 9],
+  "Hüzzam":   [5, 9, 5, 12, 5, 9, 8],
   "Nihavend": [9, 4, 9, 9, 4, 9, 9]
 };
+
+const I18N = {
+  tr: {
+    play: "Çal", stop: "Dur", usul: "Usul", bars: "Ölçü", clear: "Temizle", vol: "Ses",
+    makam: "Makam", tonic: "Karar", strings: "Tel", metal: "Metal tel", plastic: "Plastik tel",
+    record: "Kayıt", recording: "Kaydediyor", quantize: "Gride yapış", undo: "Geri al",
+    notes: "nota", export: "İndir", loops: "Tekrar",
+    rendering: "Hazırlanıyor...", encoding: "MP3 kodlanıyor...", packing: "Paketleniyor...",
+    done: "Bitti.", failed: "İndirme hatası: ",
+    accent: "Aksanlı", normal: "Normal", soft: "Hafif", off: "Boş", smart: "Akıllı dizi",
+    credits: "Emeği geçenler",
+    creditsBody: '<a href="https://www.linkedin.com/in/cemilkocan/">Cemil Koçan</a> yaptı. Kulağı ve önerileri için Samet Yenipınar\'a (<a href="https://www.youtube.com/@art-s-y">ARTSY</a>) teşekkürler.',
+    tagline: "Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.",
+    noteNames: ["Do", "Do♯", "Re", "Re♯", "Mi", "Fa", "Fa♯", "Sol", "Sol♯", "La", "La♯", "Si"]
+  },
+  en: {
+    play: "Play", stop: "Stop", usul: "Usul", bars: "Bars", clear: "Clear", vol: "Vol",
+    makam: "Makam", tonic: "Tonic", strings: "Strings", metal: "Metal strings", plastic: "Plastic strings",
+    record: "Record", recording: "Recording", quantize: "Snap to grid", undo: "Undo",
+    notes: "notes", export: "Export", loops: "Loops",
+    rendering: "Rendering...", encoding: "Encoding MP3...", packing: "Packing...",
+    done: "Done.", failed: "Export failed: ",
+    accent: "Accent", normal: "Normal", soft: "Soft", off: "Off", smart: "Smart scale",
+    credits: "Credits",
+    creditsBody: 'Made by <a href="https://www.linkedin.com/in/cemilkocan/">Cemil Koçan</a>. Thanks to Samet Yenipınar (<a href="https://www.youtube.com/@art-s-y">ARTSY</a>) for his ears and advice.',
+    tagline: "Free. Everything runs in your browser, nothing is uploaded.",
+    noteNames: ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"]
+  }
+};
+let lang = "tr";
+try { lang = localStorage.getItem("ckm_lang") || "tr"; } catch (e) {}
+const t = key => I18N[lang][key];
+
+// FL Studio convention: middle C is C5 (MIDI 60 -> octave 5).
+function freqToName(f) {
+  const midi = Math.round(69 + 12 * Math.log2(f / 440));
+  return t("noteNames")[((midi % 12) + 12) % 12] + Math.floor(midi / 12);
+}
 
 const TONICS = [
   ["G", 196.00], ["A", 220.00], ["Bb", 233.08],
@@ -50,7 +88,7 @@ const USULS = {
     steps: 8, beatGroups: [4, 4],
     rows: { doum: "X...x...", mute: "...o....", tek: "......x." }
   },
-  "Ciftetelli (4/4)": {
+  "Çiftetelli (4/4)": {
     steps: 16, beatGroups: [4, 4, 4, 4],
     rows: { doum: "X.......x.x.....", tek: "...x..x.....x..." }
   },
@@ -58,7 +96,7 @@ const USULS = {
     steps: 8, beatGroups: [2, 2, 2, 2],
     rows: { doum: "X.......", tek: "....x...", mute: ".....o.." }
   },
-  "Karsilama (9/8)": {
+  "Karşılama (9/8)": {
     steps: 9, beatGroups: [2, 2, 2, 3],
     rows: { doum: "X...x....", tek: "..x...x.x" }
   },
@@ -66,7 +104,7 @@ const USULS = {
     steps: 9, beatGroups: [2, 2, 2, 3],
     rows: { doum: "X...x....", tek: "......x..", mute: "..o.....o" }
   },
-  "Empty (4/4)": { steps: 16, beatGroups: [4, 4, 4, 4], rows: {} }
+  "Boş / Empty (4/4)": { steps: 16, beatGroups: [4, 4, 4, 4], rows: {} }
 };
 
 const SOUND_FILES = (() => {
@@ -90,6 +128,7 @@ const state = {
   recording: false,
   makam: "Hicaz",
   tonic: 220.0,
+  smart: true,
   strings: "metal",
   volDrums: 0.9,
   volBaglama: 0.9
@@ -130,15 +169,27 @@ function pickSample(freq) {
 
 function buildKeyFreqs() {
   const pat = MAKAMS[state.makam];
+  // Makam degrees over two octaves, in commas from one octave below the tonic.
+  const degs = [];
+  let commas = -53;
+  for (let oct = 0; oct < 2; oct++)
+    for (let d = 0; d < 7; d++) { degs.push({ commas, deg: d }); commas += pat[d]; }
+  degs.push({ commas, deg: 0 });
+
   const freqs = [];
-  let commas = -53;                                   // start one octave below tonic
-  for (let oct = 0; oct < 2; oct++) {
-    for (let d = 0; d < 7; d++) {
-      freqs.push({ f: state.tonic * Math.pow(2, commas / 53), deg: d, oct });
-      commas += pat[d];
+  if (state.smart) {
+    for (const d of degs)
+      freqs.push({ f: state.tonic * Math.pow(2, d.commas / 53), deg: d.deg, inScale: true });
+  } else {
+    // Chromatic keyboard, sharps included. Keys matching a makam degree
+    // (within 25 cents) play the exact comma pitch and stay bright.
+    for (let s = -12; s <= 12; s++) {
+      const cents = s * 100;
+      const hit = degs.find(d => Math.abs(d.commas * 1200 / 53 - cents) < 25);
+      if (hit) freqs.push({ f: state.tonic * Math.pow(2, hit.commas / 53), deg: hit.deg, inScale: true });
+      else freqs.push({ f: state.tonic * Math.pow(2, s / 12), deg: -1, inScale: false });
     }
   }
-  freqs.push({ f: state.tonic * Math.pow(2, commas / 53), deg: 0, oct: 2 });
   keyFreqs = freqs;
 }
 
@@ -226,7 +277,7 @@ function startPlayback() {
   loopStartTime = nextStepTime;
   schedTimer = setInterval(schedule, 25);
   state.playing = true;
-  $("play").textContent = "Stop";
+  $("play").textContent = t("stop");
   $("play").classList.add("playing");
 }
 
@@ -235,7 +286,7 @@ function stopPlayback() {
   schedTimer = null;
   state.playing = false;
   if (state.recording) toggleRec(false);
-  $("play").textContent = "Play";
+  $("play").textContent = t("play");
   $("play").classList.remove("playing");
   document.querySelectorAll(".cell.now").forEach(c => c.classList.remove("now"));
 }
@@ -348,9 +399,8 @@ function renderKeys() {
   wrap.innerHTML = "";
   keyFreqs.forEach((k, i) => {
     const btn = document.createElement("button");
-    btn.className = "key" + (k.deg === 0 ? " tonic" : "");
-    const marks = k.oct === 0 ? "," : k.oct === 2 ? "''" : "";
-    btn.innerHTML = '<span class="deg">' + (k.deg + 1) + marks + '</span><span class="freq">' + k.f.toFixed(0) + " Hz</span>";
+    btn.className = "key" + (k.deg === 0 ? " tonic" : "") + (k.inScale ? "" : " outscale");
+    btn.innerHTML = '<span class="deg">' + freqToName(k.f) + '</span><span class="freq">' + k.f.toFixed(0) + " Hz</span>";
     btn.addEventListener("pointerdown", async e => {
       e.preventDefault();
       await initAudio();
@@ -376,13 +426,13 @@ function recordNote(keyIndex) {
 }
 
 function updateNoteCount() {
-  $("noteCount").textContent = state.notes.length ? state.notes.length + " notes" : "";
+  $("noteCount").textContent = state.notes.length ? state.notes.length + " " + t("notes") : "";
 }
 
 function toggleRec(force) {
   state.recording = force !== undefined ? force : !state.recording;
   $("rec").classList.toggle("armed", state.recording);
-  $("rec").textContent = state.recording ? "Recording" : "Record";
+  $("rec").textContent = state.recording ? t("recording") : t("record");
 }
 
 /* ---------- export ---------- */
@@ -505,7 +555,7 @@ async function doExport(kind) {
   await initAudio();
   if (state.playing) stopPlayback();
   const status = $("exportStatus");
-  status.textContent = "Rendering...";
+  status.textContent = t("rendering");
   const repeats = parseInt($("repeats").value, 10);
   try {
     if (kind === "stems") {
@@ -513,7 +563,7 @@ async function doExport(kind) {
         await renderOffline(repeats, { drums: true }),
         await renderOffline(repeats, { baglama: true })
       ];
-      status.textContent = "Packing...";
+      status.textContent = t("packing");
       const zip = makeZip([
         ["darbuka.wav", bufferToWav(drums)],
         ["baglama.wav", bufferToWav(bag)]
@@ -522,13 +572,13 @@ async function doExport(kind) {
     } else {
       const mix = await renderOffline(repeats, { drums: true, baglama: true });
       if (kind === "wav") download(new Blob([bufferToWav(mix)], { type: "audio/wav" }), "ck-makam-" + stamp() + ".wav");
-      else { status.textContent = "Encoding MP3..."; download(await encodeMp3(mix), "ck-makam-" + stamp() + ".mp3"); }
+      else { status.textContent = t("encoding"); download(await encodeMp3(mix), "ck-makam-" + stamp() + ".mp3"); }
     }
-    status.textContent = "Done.";
+    status.textContent = t("done");
   } catch (err) {
-    status.textContent = "Export failed: " + err.message;
+    status.textContent = t("failed") + err.message;
   }
-  setTimeout(() => { if (status.textContent === "Done.") status.textContent = ""; }, 4000);
+  setTimeout(() => { if (status.textContent === t("done")) status.textContent = ""; }, 4000);
 }
 
 /* ---------- wiring ---------- */
@@ -544,14 +594,48 @@ function fillSelect(sel, items, selected) {
   }
 }
 
+function renderLegend() {
+  $("legend").innerHTML = ["normal", "accent", "soft", "off"].map(k =>
+    '<span class="sw ' + k + '"></span>' + t(k)
+  ).join('<span class="gap"></span>');
+}
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  $("lang").textContent = lang === "tr" ? "EN" : "TR";
+  const s = $("strings");
+  s.innerHTML = "";
+  for (const v of ["metal", "plastic"]) {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = t(v);
+    if (v === state.strings) o.selected = true;
+    s.appendChild(o);
+  }
+  $("play").textContent = state.playing ? t("stop") : t("play");
+  $("rec").textContent = state.recording ? t("recording") : t("record");
+  renderLegend();
+  updateNoteCount();
+}
+
 function init() {
   fillSelect($("usul"), Object.keys(USULS), state.usul);
   fillSelect($("makam"), Object.keys(MAKAMS), state.makam);
   fillSelect($("shift"), TONICS, "A");
   $("shift").value = "220";
 
+  applyLang();
   initGrid(true);
   renderKeys();
+
+  $("lang").addEventListener("click", () => {
+    lang = lang === "tr" ? "en" : "tr";
+    try { localStorage.setItem("ckm_lang", lang); } catch (e) {}
+    applyLang();
+    renderKeys();
+  });
+  $("smart").addEventListener("change", e => { state.smart = e.target.checked; renderKeys(); });
 
   $("play").addEventListener("click", async () => {
     await initAudio();

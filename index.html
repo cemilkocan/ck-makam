@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CK Makam</title>
-<meta name="description" content="Make music with darbuka and bağlama in your browser. Turkish makams, usul rhythms, loops, and MP3, WAV and stem export. Free.">
+<meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -12,9 +12,10 @@
 <header class="top">
   <img src="assets/logo.svg" alt="CK Makam" class="logo">
   <div class="transport">
-    <button id="play" class="big" aria-label="Play">Play</button>
+    <button id="play" class="big">Çal</button>
     <label class="tempo">BPM <input id="bpm" type="number" min="60" max="180" value="100"></label>
     <input id="bpmRange" type="range" min="60" max="180" value="100" aria-label="Tempo">
+    <button id="lang" class="ghost" title="Language">EN</button>
   </div>
 </header>
 
@@ -22,30 +23,31 @@
   <section class="panel" id="drumPanel">
     <div class="panel-head">
       <h2>Darbuka</h2>
-      <label>Usul
+      <label><span data-i18n="usul">Usul</span>
         <select id="usul"></select>
       </label>
-      <label>Bars <select id="bars"><option>1</option><option selected>2</option><option>4</option></select></label>
-      <button id="clearDrums" class="ghost">Clear</button>
-      <label class="vol">Vol <input type="range" id="volDrums" min="0" max="1.2" step="0.01" value="0.9"></label>
+      <label><span data-i18n="bars">Ölçü</span> <select id="bars"><option>1</option><option selected>2</option><option>4</option></select></label>
+      <button id="clearDrums" class="ghost" data-i18n="clear">Temizle</button>
+      <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volDrums" min="0" max="1.2" step="0.01" value="0.9"></label>
     </div>
-    <p class="hint">Tap a cell to cycle: normal, accent, soft, off.</p>
+    <div id="legend" class="legend"></div>
     <div id="grid" class="grid"></div>
   </section>
 
   <section class="panel" id="baglamaPanel">
     <div class="panel-head">
       <h2>Bağlama</h2>
-      <label>Makam <select id="makam"></select></label>
-      <label>Shift <select id="shift"></select></label>
-      <label>Strings <select id="strings"><option value="metal">Metal</option><option value="plastic">Plastic</option></select></label>
-      <label class="vol">Vol <input type="range" id="volBaglama" min="0" max="1.2" step="0.01" value="0.9"></label>
+      <label><span data-i18n="makam">Makam</span> <select id="makam"></select></label>
+      <label><span data-i18n="tonic">Karar</span> <select id="shift"></select></label>
+      <label><span data-i18n="strings">Tel</span> <select id="strings"></select></label>
+      <label><input type="checkbox" id="smart" checked> <span data-i18n="smart">Akıllı dizi</span></label>
+      <label class="vol"><span data-i18n="vol">Ses</span> <input type="range" id="volBaglama" min="0" max="1.2" step="0.01" value="0.9"></label>
     </div>
     <div class="rec-row">
-      <button id="rec" class="rec">Record</button>
-      <label><input type="checkbox" id="quantize" checked> Snap to grid</label>
-      <button id="undo" class="ghost">Undo</button>
-      <button id="clearNotes" class="ghost">Clear</button>
+      <button id="rec" class="rec" data-i18n="record">Kayıt</button>
+      <label><input type="checkbox" id="quantize" checked> <span data-i18n="quantize">Gride yapış</span></label>
+      <button id="undo" class="ghost" data-i18n="undo">Geri al</button>
+      <button id="clearNotes" class="ghost" data-i18n="clear">Temizle</button>
       <span id="noteCount" class="muted"></span>
     </div>
     <div id="keys" class="keys"></div>
@@ -53,8 +55,8 @@
 
   <section class="panel" id="exportPanel">
     <div class="panel-head">
-      <h2>Export</h2>
-      <label>Loops <select id="repeats"><option>1</option><option>2</option><option selected>4</option><option>8</option></select></label>
+      <h2 data-i18n="export">İndir</h2>
+      <label><span data-i18n="loops">Tekrar</span> <select id="repeats"><option>1</option><option>2</option><option selected>4</option><option>8</option></select></label>
     </div>
     <div class="export-row">
       <button data-export="mp3">MP3 320</button>
@@ -67,12 +69,11 @@
 
 <footer>
   <details>
-    <summary>Credits</summary>
-    <p>Made by <a href="https://www.linkedin.com/in/cemilkocan/">Cemil Koçan</a>. Thanks to Samet Yenipınar (<a href="https://www.youtube.com/@art-s-y">ARTSY</a>) for his ears and advice.</p>
-    <p>Doumbek samples by <a href="https://freesound.org/people/gregstullsoundlab/packs/16580/">gregstullsoundlab</a>, bağlama samples by <a href="https://freesound.org/people/fcerim/packs/40093/">fcerim</a>, both CC0 via Freesound. Snare and clap are synthesized.</p>
-    <p>MP3 encoding by <a href="https://github.com/zhuker/lamejs">lamejs</a>, based on <a href="https://lame.sourceforge.io/">LAME</a> (LGPL).</p>
+    <summary data-i18n="credits">Emeği geçenler</summary>
+    <p data-i18n-html="creditsBody"></p>
+    <p>Doumbek: <a href="https://freesound.org/people/gregstullsoundlab/packs/16580/">gregstullsoundlab</a>, bağlama: <a href="https://freesound.org/people/fcerim/packs/40093/">fcerim</a> (Freesound, CC0). MP3: <a href="https://github.com/zhuker/lamejs">lamejs</a> / <a href="https://lame.sourceforge.io/">LAME</a> (LGPL).</p>
   </details>
-  <p class="muted">Free and non-commercial. Everything runs in your browser.</p>
+  <p class="muted" data-i18n="tagline">Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.</p>
 </footer>
 
 <script src="app.js"></script>
