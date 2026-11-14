@@ -119,6 +119,11 @@ const I18N = {
       "Hüzzam": "Dokunaklı, kıvrımlı. Hicaz'a benzer ama karar sesi başka yerde durur.",
       "Nihavend": "Romantik ve üzgün. Batı minörünün karşılığı."
     },
+    demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
+    mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
+    micOffset: "Kaydırma", micHint: "Mikrofona konuş ya da söyle, sesin loop'a katman olarak eklenir. Çal sırasında kaydedersen ritme oturur. Geç ya da erken düştüyse kaydırmayla hizala.",
+    micDenied: "Mikrofon izni verilmedi.", micNo: "Bu tarayıcı mikrofon kaydını desteklemiyor.",
+    micOn: "Kaydediyor, bitince düğmeye bas.", micSaved: "Ses eklendi.", voice: "Ses",
     wheel: "Camelot tekerleği", wheelNow: "Şu an", wheelFit: "Uyumlu",
     wheelHelp: "Tekerlekten bir koda tıklayınca karar sesi ve makam ona göre ayarlanır. Aşağıdaki açıklamada sistemin nasıl çalıştığı yazıyor.",
     learn: "Bunlar ne demek?",
@@ -195,6 +200,11 @@ const I18N = {
       "Hüzzam": "Poignant and winding. Close to Hicaz but it comes to rest elsewhere.",
       "Nihavend": "Romantic and sad. The equivalent of the Western minor scale."
     },
+    demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
+    mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
+    micOffset: "Nudge", micHint: "Speak or sing into the mic and your voice joins the loop as a layer. Record while it plays and it lands in time. If it sits late or early, nudge it into place.",
+    micDenied: "Microphone permission was refused.", micNo: "This browser cannot record from the microphone.",
+    micOn: "Recording, press the button when you are done.", micSaved: "Voice added.", voice: "Voice",
     wheel: "Camelot wheel", wheelNow: "Now", wheelFit: "Mixes with",
     wheelHelp: "Click a code and the tonic and makam follow it. The notes below explain how the system works.",
     learn: "What do these mean?",
@@ -237,6 +247,7 @@ const THEMES = { toprak: "Toprak", gece: "Gece", orman: "Orman", gul: "Gül", ko
 const state = {
   bpm: 100, usul: "Maqsum (4/4)", bars: 2, swing: 0,
   grid: {}, notes: [], muted: new Set(),
+  voice: null, voiceOffset: 0, volVoice: 1.0,
   playing: false, recording: false,
   makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal",
   volDrums: 0.9, volBaglama: 0.9
@@ -355,7 +366,19 @@ function buildGraph(ac) {
   metal.gain.value = metalOn ? 1 : 0;
   plastic.gain.value = metalOn ? 0 : 1;
 
-  return { master, drums, bagIn, bagOut, metal, plastic };
+  const voice = ac.createGain();
+  voice.gain.value = state.volVoice;
+  voice.connect(master);
+
+  return { master, drums, bagIn, bagOut, metal, plastic, voice };
+}
+
+function playVoice(ac, g, time) {
+  if (!state.voice) return;
+  const src = ac.createBufferSource();
+  src.buffer = state.voice;
+  src.connect(g.voice);
+  src.start(Math.max(time + state.voiceOffset, ac.currentTime), 0);
 }
 
 function playDrum(ac, g, rowId, time, vel) {
@@ -436,6 +459,7 @@ function schedule() {
       if (scheduledLoop < loopIdx) {
         scheduledLoop = loopIdx;
         for (const n of state.notes) playNote(ctx, nodes, n.f, nextStepTime + n.t, n.vel);
+        playVoice(ctx, nodes, nextStepTime);
       }
     }
     const at = nextStepTime + swingShift(local);
@@ -886,6 +910,12 @@ async function renderOffline(repeats, parts) {
         }
     if (parts.baglama)
       for (const n of state.notes) playNote(oc, g, n.f, base + n.t, n.vel);
+    if (parts.voice && state.voice) {
+      const src = oc.createBufferSource();
+      src.buffer = state.voice;
+      src.connect(g.voice);
+      src.start(Math.max(0, base + state.voiceOffset));
+    }
   }
   return oc.startRendering();
 }
@@ -987,13 +1017,14 @@ async function doExport(kind) {
   const repeats = parseInt($("repeats").value, 10);
   try {
     if (kind === "stems") {
-      const drums = await renderOffline(repeats, { drums: true });
-      const bag = await renderOffline(repeats, { baglama: true });
+      const files = [["darbuka.wav", bufferToWav(await renderOffline(repeats, { drums: true }))],
+                     ["baglama.wav", bufferToWav(await renderOffline(repeats, { baglama: true }))]];
+      if (state.voice)
+        files.push(["ses.wav", bufferToWav(await renderOffline(repeats, { voice: true }))]);
       status.textContent = t("packing");
-      download(makeZip([["darbuka.wav", bufferToWav(drums)], ["baglama.wav", bufferToWav(bag)]]),
-               "ck-makam-stems-" + stamp() + ".zip");
+      download(makeZip(files), "ck-makam-stems-" + stamp() + ".zip");
     } else {
-      const mix = await renderOffline(repeats, { drums: true, baglama: true });
+      const mix = await renderOffline(repeats, { drums: true, baglama: true, voice: true });
       if (kind === "wav")
         download(new Blob([bufferToWav(mix)], { type: "audio/wav" }), "ck-makam-" + stamp() + ".wav");
       else {
@@ -1006,6 +1037,106 @@ async function doExport(kind) {
     status.textContent = t("failed") + err.message;
   }
   setTimeout(() => { if (status.textContent === t("done")) status.textContent = ""; }, 4000);
+}
+
+/* ---------- microphone layer ---------- */
+
+let micRecorder = null, micStream = null, voiceBase = 0;
+
+async function toggleMic() {
+  const btn = $("micBtn"), st = $("micStatus");
+  if (micRecorder && micRecorder.state === "recording") { micRecorder.stop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { st.textContent = t("micNo"); return; }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true }
+    });
+  } catch (e) {
+    st.textContent = t("micDenied");
+    return;
+  }
+  await initAudio();
+  const startAt = state.playing ? ((ctx.currentTime - loopStartTime) % loopDur() + loopDur()) % loopDur() : 0;
+  const chunks = [];
+  micRecorder = new MediaRecorder(micStream);
+  micRecorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  micRecorder.onstop = async () => {
+    micStream.getTracks().forEach(t2 => t2.stop());
+    btn.textContent = t("mic");
+    btn.classList.remove("armed");
+    try {
+      const buf = await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
+      state.voice = buf;
+      // line the take up with the point in the loop where recording began
+      voiceBase = startAt;
+      state.voiceOffset = startAt;
+      $("micOffset").value = 0;
+      $("micClear").hidden = false;
+      $("micOffset").parentElement.hidden = false;
+      st.textContent = t("micSaved") + " " + buf.duration.toFixed(1) + "s";
+    } catch (err) {
+      st.textContent = t("failed") + err.message;
+    }
+  };
+  micRecorder.start();
+  btn.textContent = t("micRec");
+  btn.classList.add("armed");
+  st.textContent = t("micOn");
+}
+
+function clearVoice() {
+  state.voice = null;
+  state.voiceOffset = 0;
+  voiceBase = 0;
+  $("micOffset").value = 0;
+  $("micClear").hidden = true;
+  $("micOffset").parentElement.hidden = true;
+  $("micStatus").textContent = "";
+}
+
+/* ---------- demo pieces ---------- */
+
+function fillDemos() {
+  const sel = $("demoSel");
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = t("demoPick");
+  sel.appendChild(first);
+  for (const d of (window.DEMOS || [])) {
+    const o = document.createElement("option");
+    o.value = d.id;
+    o.textContent = d[lang] || d.tr;
+    sel.appendChild(o);
+  }
+}
+
+function loadDemo(id) {
+  const d = (window.DEMOS || []).find(x => x.id === id);
+  if (!d) return;
+  if (state.playing) stopPlayback();
+  state.makam = d.makam;
+  state.usul = USULS[d.usul] ? d.usul : state.usul;
+  state.bars = d.bars;
+  state.bpm = d.bpm;
+  state.tonic = d.tonic;
+  state.smart = true;
+  state.swing = 0;
+  state.muted = new Set();
+  initGrid(true);
+  buildKeys();
+  state.notes = d.notes.map(([q, cents, len]) => {
+    const f = d.tonic * Math.pow(2, cents / 1200);
+    let best = keys[0], bd = 1e9;
+    for (const k of keys) {
+      const dist = Math.abs(Math.log2(f / k.freq));
+      if (dist < bd) { bd = dist; best = k; }
+    }
+    return { t: q * 60 / d.bpm, f, midi: best.midi, vel: 0.9,
+             len: Math.max(0.08, len * 60 / d.bpm) };
+  });
+  syncControls();
+  $("exportStatus").textContent = t("demoLoaded");
 }
 
 /* ---------- Camelot wheel ---------- */
@@ -1308,7 +1439,7 @@ async function exportVideo() {
   let repeats = parseInt($("repeats").value, 10);
   while (loopDur() * repeats > 35 && repeats > 1) repeats--;
   status.textContent = t("rendering");
-  const buf = await renderOffline(repeats, { drums: true, baglama: true });
+  const buf = await renderOffline(repeats, { drums: true, baglama: true, voice: true });
 
   const canvas = document.createElement("canvas");
   canvas.width = 720; canvas.height = 1280;
@@ -1561,6 +1692,7 @@ function applyLang() {
   setPlayIcon();
   setCollapsed($("drumBody").hidden);
   fillMakams();
+  fillDemos();
   renderLegend();
   renderGrid();
   renderKeys();
@@ -1683,6 +1815,14 @@ function init() {
   $("tourSkip").addEventListener("click", e => { e.stopPropagation(); closeTour(); });
   $("tour").addEventListener("click", e => { if (!e.target.closest(".tourbox")) closeTour(); });
   $("helpBtn").addEventListener("click", () => showTour(0));
+  $("demoSel").addEventListener("change", e => { loadDemo(e.target.value); blur(e); });
+  $("micBtn").addEventListener("click", toggleMic);
+  $("micClear").addEventListener("click", clearVoice);
+  $("micOffset").addEventListener("input", e => { state.voiceOffset = voiceBase + +e.target.value; });
+  $("volVoice").addEventListener("input", e => {
+    state.volVoice = +e.target.value;
+    if (nodes) nodes.voice.gain.value = state.volVoice;
+  });
   $("shareBtn").addEventListener("click", shareLink);
   $("videoBtn").addEventListener("click", exportVideo);
 

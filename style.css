@@ -54,7 +54,7 @@ button.big {
 button.big.playing { background: var(--accent); }
 button.big2 { background: var(--accent); border-color: transparent; color: #fff; font-weight: 600; }
 button.rec { border-color: var(--accent); }
-button.rec.armed { background: var(--accent); font-weight: 600; }
+button.rec.armed, button.armed { background: var(--accent); border-color: transparent; font-weight: 600; }
 button.ghost { background: transparent; }
 button.small { padding: 5px 11px; font-size: 13px; }
 button.help {

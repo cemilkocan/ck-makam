@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <header class="top">
@@ -16,6 +16,7 @@
     <label class="tempo">BPM <input id="bpm" type="number" min="60" max="180" value="100"></label>
     <input id="bpmRange" type="range" min="60" max="180" value="100" aria-label="Tempo">
     <label><span data-i18n="swing">Salınım</span> <input id="swing" type="range" min="0" max="0.6" step="0.01" value="0"></label>
+    <label><span data-i18n="demo">Demo</span> <select id="demoSel"></select></label>
     <label><span data-i18n="theme">Tema</span> <select id="themeSel"></select></label>
     <button id="lang" class="ghost" title="Language">EN</button>
     <button id="helpBtn" class="ghost" title="?">?</button>
@@ -81,6 +82,20 @@
 
   <section class="panel">
     <div class="panel-head">
+      <h2 data-i18n="voice">Ses</h2>
+      <button id="micBtn" data-i18n="mic">Sesini kaydet</button>
+      <button id="micClear" class="ghost" data-i18n="micClear" hidden>Sesi sil</button>
+      <label hidden><span data-i18n="micOffset">Kaydırma</span>
+        <input type="range" id="micOffset" min="-0.5" max="0.5" step="0.01" value="0"></label>
+      <label class="vol"><span data-i18n="vol">Ses</span>
+        <input type="range" id="volVoice" min="0" max="1.5" step="0.01" value="1"></label>
+    </div>
+    <p class="muted" data-i18n="micHint"></p>
+    <p id="micStatus" class="muted"></p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
       <h2 data-i18n="wheel">Camelot tekerleği</h2>
       <button id="wheelHelp" class="help" aria-label="?">?</button>
     </div>
@@ -128,6 +143,7 @@
     <summary data-i18n="credits">Emeği geçenler</summary>
     <p data-i18n-html="creditsBody"></p>
     <p>Doumbek: <a href="https://freesound.org/people/gregstullsoundlab/packs/16580/">gregstullsoundlab</a>, bağlama: <a href="https://freesound.org/people/fcerim/packs/40093/">fcerim</a> (Freesound, CC0). MP3: <a href="https://github.com/zhuker/lamejs">lamejs</a> / <a href="https://lame.sourceforge.io/">LAME</a> (LGPL).</p>
+    <p>Demo türküleri anonim halk eserleridir. Notalar <a href="https://github.com/MTG/SymbTr">SymbTr</a> veri setinden alınmıştır (M. Kemal Karaosmanoğlu, MTG), <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> ile lisanslıdır; demo nota verisi de aynı lisansla dağıtılır.</p>
   </details>
   <p class="muted" data-i18n="tagline">Ücretsiz. Her şey tarayıcında çalışır, hiçbir veri gönderilmez.</p>
 </footer>
@@ -149,6 +165,7 @@
   </div>
 </div>
 
-<script src="app.js?v=11"></script>
+<script src="demos.js?v=1"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
