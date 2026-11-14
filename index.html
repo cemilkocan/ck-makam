@@ -6,7 +6,7 @@
 <title>CK Makam</title>
 <meta name="description" content="Tarayıcıda darbuka ve bağlama ile müzik yap. Makamlar, usuller, piyano roll, loop ve MP3, WAV, stem indirme. Ücretsiz.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=19">
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 <header class="top">
@@ -100,11 +100,22 @@
       <label class="vol"><span data-i18n="vol">Ses</span>
         <input type="range" id="volVoice" min="0" max="1.5" step="0.01" value="1"></label>
     </div>
-    <div id="fxRow" class="rec-row" hidden>
+    <div id="fxRow" class="fxgrid" hidden>
       <label><span data-i18n="fxReverb">Yankı</span>
         <input type="range" id="fxReverb" min="0" max="1" step="0.01" value="0"></label>
       <label><span data-i18n="fxEcho">Eko</span>
         <input type="range" id="fxEcho" min="0" max="0.8" step="0.01" value="0"></label>
+      <label><span data-i18n="fxChorus">Koro</span>
+        <input type="range" id="fxChorus" min="0" max="1" step="0.01" value="0"></label>
+      <label><span data-i18n="fxDrive">Bozulma</span>
+        <input type="range" id="fxDrive" min="0" max="1" step="0.01" value="0"></label>
+      <label><span data-i18n="fxBass">Kalınlık</span>
+        <input type="range" id="fxBass" min="-12" max="12" step="0.5" value="0"></label>
+      <label><span data-i18n="fxTreble">Tizlik</span>
+        <input type="range" id="fxTreble" min="-12" max="12" step="0.5" value="0"></label>
+      <label><input type="checkbox" id="fxComp"> <span data-i18n="fxComp">Sıkıştır</span></label>
+      <label><input type="checkbox" id="fxPhone"> <span data-i18n="fxPhone">Telefon</span></label>
+      <button id="fxReset" class="ghost small" data-i18n="fxReset">Efektleri sıfırla</button>
     </div>
     <canvas id="wave" class="wave" hidden></canvas>
     <p class="muted" data-i18n="micHint"></p>
@@ -188,6 +199,6 @@
 </div>
 
 <script src="demos.js?v=4"></script>
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>

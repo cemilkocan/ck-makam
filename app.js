@@ -143,7 +143,8 @@ const I18N = {
     uploadHint: "Kendi mp3 ya da wav dosyanı yükleyip katman olarak kullanabilirsin. Notaya çevir, tek sesli kayıtlarda çalışır: mırıldanma, tek bir çalgı ya da solo vokal. Karışık bir şarkıyı enstrümanlarına ayırmaz, onu tarayıcıda yapmak mümkün değil.",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
-    micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko",
+    micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko", fxChorus: "Koro", fxDrive: "Bozulma",
+    fxBass: "Kalınlık", fxTreble: "Tizlik", fxComp: "Sıkıştır", fxPhone: "Telefon", fxReset: "Efektleri sıfırla",
     micHint: "Mikrofona konuş ya da söyle, sesin loop'a katman olarak eklenir. Çal sırasında kaydedersen ritme oturur. Geç ya da erken düştüyse kaydırmayla hizala. Hoparlör açıkken kaydedersen loop sesi de karışabilir, kulaklık takmak en temizi.",
     micDenied: "Mikrofon izni verilmedi.", micNo: "Bu tarayıcı mikrofon kaydını desteklemiyor.",
     micEmpty: "Kayıt boş çıktı, tekrar dene.", micOn: "Kaydediyor, bitince düğmeye bas.", micSaved: "Ses eklendi.", voice: "Ses",
@@ -244,7 +245,8 @@ const I18N = {
     uploadHint: "Load your own mp3 or wav and use it as a layer. Find the melody works on single-voice material: humming, one instrument, or a solo vocal. It does not split a finished song into its instruments, which a browser cannot do.",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
-    micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo",
+    micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo", fxChorus: "Chorus", fxDrive: "Drive",
+    fxBass: "Bass", fxTreble: "Treble", fxComp: "Compress", fxPhone: "Telephone", fxReset: "Reset effects",
     micHint: "Speak or sing into the mic and your voice joins the loop as a layer. Record while it plays and it lands in time. If it sits late or early, nudge it into place. Recording with the speakers on can bleed the loop into the take, so headphones are cleanest.",
     micDenied: "Microphone permission was refused.", micNo: "This browser cannot record from the microphone.",
     micEmpty: "The take came out empty, try again.", micOn: "Recording, press the button when you are done.", micSaved: "Voice added.", voice: "Voice",
@@ -296,7 +298,8 @@ const THEMES = { toprak: "Toprak", gece: "Gece", orman: "Orman", gul: "Gül", ko
 const state = {
   bpm: 100, usul: "Maqsum (4/4)", bars: 2, swing: 0,
   grid: {}, notes: [], muted: new Set(),
-  voice: null, voiceOffsetQ: 0, volVoice: 1.0, reverb: 0, echo: 0,
+  voice: null, voiceOffsetQ: 0, volVoice: 1.0,
+  fx: { reverb: 0, echo: 0, chorus: 0, drive: 0, bass: 0, treble: 0, comp: false, phone: false },
   playing: false, recording: false,
   makam: "Hicaz", tonic: 220.0, smart: true, strings: "metal", inst: "baglama",
   volDrums: 0.9, volBaglama: 0.9
@@ -427,30 +430,89 @@ function buildGraph(ac) {
   metal.gain.value = metalOn ? 1 : 0;
   plastic.gain.value = metalOn ? 0 : 1;
 
-  // voice chain: dry plus an echo and a reverb send
+  // voice chain: tone, colour, dynamics, then three parallel sends
+  const fx = state.fx;
   const voiceIn = ac.createGain();
   const voiceOut = ac.createGain();
   voiceOut.gain.value = state.volVoice;
   voiceOut.connect(master);
-  voiceIn.connect(voiceOut);
+
+  const bass = ac.createBiquadFilter();
+  bass.type = "lowshelf"; bass.frequency.value = 220; bass.gain.value = fx.bass;
+  const treble = ac.createBiquadFilter();
+  treble.type = "highshelf"; treble.frequency.value = 3200; treble.gain.value = fx.treble;
+  voiceIn.connect(bass).connect(treble);
+
+  // drive, mixed in parallel so the clean signal is never lost
+  const shaper = ac.createWaveShaper();
+  shaper.curve = driveCurve(400);
+  shaper.oversample = "2x";
+  const driveWet = ac.createGain(); driveWet.gain.value = fx.drive * 0.8;
+  const driveDry = ac.createGain(); driveDry.gain.value = 1 - fx.drive * 0.5;
+  const afterDrive = ac.createGain();
+  treble.connect(driveDry).connect(afterDrive);
+  treble.connect(shaper).connect(driveWet).connect(afterDrive);
+
+  // a narrow band gives the old-telephone colour
+  const phone = ac.createBiquadFilter();
+  phone.type = "bandpass"; phone.frequency.value = 1500; phone.Q.value = 1.1;
+  const phoneWet = ac.createGain(); phoneWet.gain.value = fx.phone ? 1.6 : 0;
+  const phoneDry = ac.createGain(); phoneDry.gain.value = fx.phone ? 0 : 1;
+  const afterPhone = ac.createGain();
+  afterDrive.connect(phoneDry).connect(afterPhone);
+  afterDrive.connect(phone).connect(phoneWet).connect(afterPhone);
+
+  const comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -26; comp.ratio.value = 5; comp.attack.value = 0.005; comp.release.value = 0.2;
+  const compWet = ac.createGain(); compWet.gain.value = fx.comp ? 1.5 : 0;
+  const compDry = ac.createGain(); compDry.gain.value = fx.comp ? 0 : 1;
+  const post = ac.createGain();
+  afterPhone.connect(compDry).connect(post);
+  afterPhone.connect(comp).connect(compWet).connect(post);
+
+  post.connect(voiceOut);
+
+  // chorus: a short delay whose time wobbles, which thickens a single voice
+  const chDelay = ac.createDelay(0.1);
+  chDelay.delayTime.value = 0.022;
+  const lfo = ac.createOscillator();
+  lfo.frequency.value = 0.6;
+  const lfoGain = ac.createGain();
+  lfoGain.gain.value = 0.004;
+  lfo.connect(lfoGain).connect(chDelay.delayTime);
+  lfo.start(0);
+  const chorusWet = ac.createGain(); chorusWet.gain.value = fx.chorus;
+  post.connect(chDelay).connect(chorusWet).connect(voiceOut);
 
   const delay = ac.createDelay(2);
   delay.delayTime.value = Math.min(1.2, stepDur() * 2);
   const feedback = ac.createGain();
   feedback.gain.value = 0.34;
   const echoWet = ac.createGain();
-  echoWet.gain.value = state.echo;
-  voiceIn.connect(delay);
+  echoWet.gain.value = fx.echo;
+  post.connect(delay);
   delay.connect(feedback).connect(delay);
   delay.connect(echoWet).connect(voiceOut);
 
   const conv = ac.createConvolver();
   conv.buffer = makeImpulse(ac, 2.4, 2.6);
   const revWet = ac.createGain();
-  revWet.gain.value = state.reverb;
-  voiceIn.connect(conv).connect(revWet).connect(voiceOut);
+  revWet.gain.value = fx.reverb;
+  post.connect(conv).connect(revWet).connect(voiceOut);
 
-  return { master, drums, bagIn, bagOut, metal, plastic, voiceIn, voiceOut, echoWet, revWet, delay };
+  return { master, drums, bagIn, bagOut, metal, plastic, voiceIn, voiceOut,
+           echoWet, revWet, chorusWet, delay, bass, treble,
+           driveWet, driveDry, phoneWet, phoneDry, compWet, compDry };
+}
+
+// Soft saturation curve: gentle at low settings, grittier as it is pushed.
+function driveCurve(amount) {
+  const n = 1024, curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i * 2) / n - 1;
+    curve[i] = ((3 + amount) * x * 20 * Math.PI / 180) / (Math.PI + amount * Math.abs(x));
+  }
+  return curve;
 }
 
 // A short burst of filtered noise decaying away makes a serviceable room.
@@ -2011,7 +2073,7 @@ function saveProject() {
     v: 1, bpm: state.bpm, usul: state.usul, bars: state.bars, swing: state.swing,
     makam: state.makam, tonic: state.tonic, smart: state.smart, strings: state.strings,
     notes: state.notes, muted: [...state.muted],
-    voiceOffsetQ: state.voiceOffsetQ,
+    voiceOffsetQ: state.voiceOffsetQ, fx: state.fx,
     grid: Object.fromEntries(DRUM_ROWS.map(r => [r, Array.from(state.grid[r])]))
   };
   download(new Blob([JSON.stringify(data)], { type: "application/json" }),
@@ -2038,6 +2100,7 @@ function loadProject(file) {
         f: n.f, midi: n.midi, vel: n.vel
       }));
       state.voiceOffsetQ = d.voiceOffsetQ || 0;
+      if (d.fx) state.fx = Object.assign(state.fx, d.fx);
       voiceBaseQ = state.voiceOffsetQ;
       state.muted = new Set(d.muted || []);
       initGrid(false);
@@ -2380,13 +2443,41 @@ function init() {
     state.volVoice = +e.target.value;
     if (nodes) nodes.voiceOut.gain.value = state.volVoice;
   });
-  $("fxReverb").addEventListener("input", e => {
-    state.reverb = +e.target.value;
-    if (nodes) nodes.revWet.gain.value = state.reverb;
+  const fxWire = (id, key, apply) => $(id).addEventListener("input", e => {
+    state.fx[key] = e.target.type === "checkbox" ? e.target.checked : +e.target.value;
+    if (nodes) apply(state.fx[key]);
   });
-  $("fxEcho").addEventListener("input", e => {
-    state.echo = +e.target.value;
-    if (nodes) nodes.echoWet.gain.value = state.echo;
+  fxWire("fxReverb", "reverb", v => { nodes.revWet.gain.value = v; });
+  fxWire("fxEcho", "echo", v => { nodes.echoWet.gain.value = v; });
+  fxWire("fxChorus", "chorus", v => { nodes.chorusWet.gain.value = v; });
+  fxWire("fxDrive", "drive", v => {
+    nodes.driveWet.gain.value = v * 0.8;
+    nodes.driveDry.gain.value = 1 - v * 0.5;
+  });
+  fxWire("fxBass", "bass", v => { nodes.bass.gain.value = v; });
+  fxWire("fxTreble", "treble", v => { nodes.treble.gain.value = v; });
+  fxWire("fxComp", "comp", v => {
+    nodes.compWet.gain.value = v ? 1.5 : 0;
+    nodes.compDry.gain.value = v ? 0 : 1;
+  });
+  fxWire("fxPhone", "phone", v => {
+    nodes.phoneWet.gain.value = v ? 1.6 : 0;
+    nodes.phoneDry.gain.value = v ? 0 : 1;
+  });
+  $("fxReset").addEventListener("click", () => {
+    state.fx = { reverb: 0, echo: 0, chorus: 0, drive: 0, bass: 0, treble: 0, comp: false, phone: false };
+    for (const [id, k] of [["fxReverb","reverb"],["fxEcho","echo"],["fxChorus","chorus"],
+                           ["fxDrive","drive"],["fxBass","bass"],["fxTreble","treble"]])
+      $(id).value = state.fx[k];
+    $("fxComp").checked = false;
+    $("fxPhone").checked = false;
+    if (nodes) {
+      nodes.revWet.gain.value = 0; nodes.echoWet.gain.value = 0; nodes.chorusWet.gain.value = 0;
+      nodes.driveWet.gain.value = 0; nodes.driveDry.gain.value = 1;
+      nodes.bass.gain.value = 0; nodes.treble.gain.value = 0;
+      nodes.compWet.gain.value = 0; nodes.compDry.gain.value = 1;
+      nodes.phoneWet.gain.value = 0; nodes.phoneDry.gain.value = 1;
+    }
   });
   $("shareBtn").addEventListener("click", shareLink);
   $("videoBtn").addEventListener("click", exportVideo);
