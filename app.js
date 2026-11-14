@@ -152,7 +152,9 @@ const I18N = {
     hitsFound: "vuruş yerleşti", noRhythm: "Belirgin bir ritim bulunamadı.",
     fileHint: "mp3, wav, m4a, opus, ogg, aac, flac ve mp4 okunur. Ritmi çıkar tam şarkılarda da çalışır: tempoyu bulur, vuruşları bandlarına göre düm, tek ve tek tiz satırlarına dağıtır. Melodiyi çıkar yalnızca tek sesli kayıtlarda işe yarar.",
     ytLoad: "Aç", ytGrab: "Sesi yakala", ytStop: "Yakalamayı durdur",
-    ytGrabbing: "Dinliyor. Video oynamıyorsa oynat düğmesine bas.",
+    ytGrabbing: "Dinliyor, %s saniye kaldı. Bu sırada uygulamanın kendi sesi kapalı.",
+    ytPressPlay: "Video duruyorsa oynat düğmesine bas.",
+    ytNext: "Şimdi Ritmi çıkar ya da Melodiyi çıkar'a bas.",
     ytOpened: "Video açıldı. Sesi yakala'ya bas, sekme sesini paylaş.",
     ytBad: "Bu bağlantıdan video kimliği çıkmadı. youtube.com/watch?v=... ya da youtu.be/... olmalı.",
     ytDenied: "Paylaşım iptal edildi.", ytNoAudio: "Ses gelmiyor. Paylaşırken sekme sesini de paylaş kutusunu işaretle.",
@@ -270,7 +272,9 @@ const I18N = {
     hitsFound: "hits placed", noRhythm: "No clear rhythm found.",
     fileHint: "mp3, wav, m4a, opus, ogg, aac, flac and mp4 are read. Find the rhythm works on full songs: it finds the tempo and sorts the hits into the dum, tek and tek hi rows by frequency band. Find the melody only works on single-voice material.",
     ytLoad: "Open", ytGrab: "Catch the sound", ytStop: "Stop catching",
-    ytGrabbing: "Listening. If the video is not playing, press play.",
+    ytGrabbing: "Listening, %s seconds left. The app's own sound is muted while this runs.",
+    ytPressPlay: "If the video is not playing, press play.",
+    ytNext: "Now press Find the rhythm or Find the melody.",
     ytOpened: "Video open. Press Catch the sound and share the tab audio.",
     ytBad: "No video id in that link. It should look like youtube.com/watch?v=... or youtu.be/...",
     ytDenied: "Sharing was cancelled.", ytNoAudio: "No sound is coming through. Tick the share tab audio box when you share.",
@@ -1194,7 +1198,7 @@ function onKeyDown(e) {
 
   if (e.code === "Space") {
     e.preventDefault();
-    initAudio().then(() => state.playing ? stopPlayback() : startPlayback());
+    initAudio().then(() => { if (!state.playing) silenceYt(); state.playing ? stopPlayback() : startPlayback(); });
     return;
   }
   const di = DRUM_KEYS.indexOf(e.code);
@@ -1548,6 +1552,26 @@ async function loadAudioFile(file) {
 
 const YT_ORIGIN = "https://www.youtube-nocookie.com";
 let grabStream = null, grabRec = null, grabChunks = [], grabTimer = 0;
+let grabLeft = 0, grabTick = 0, ytId_ = "", ytPlaying = false, ytHeard = false, ytTouched = false;
+
+// clicking inside the player moves focus into the frame, which is how we know it was touched
+window.addEventListener("blur", () => {
+  const a = document.activeElement;
+  if (a && a.tagName === "IFRAME" && $("ytBox") && $("ytBox").contains(a)) ytTouched = true;
+});
+
+// the embedded player reports its state back to us once it is listening
+window.addEventListener("message", e => {
+  if (e.origin !== YT_ORIGIN) return;
+  let d;
+  try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch (err) { return; }
+  const ps = d && d.info && typeof d.info.playerState === "number" ? d.info.playerState : null;
+  if (ps === null) return;
+  ytHeard = true;
+  ytPlaying = ps === 1;
+  // the video and the loop never sound at the same time
+  if (ytPlaying && state.playing) stopPlayback();
+});
 
 // pull the video id out of whatever form of link was pasted
 function ytId(raw) {
@@ -1576,18 +1600,45 @@ function ytCmd(func, args) {
 function openYt() {
   const id = ytId($("ytUrl").value);
   const box = $("ytBox"), st = $("ytStatus");
-  if (!id) { box.hidden = true; box.innerHTML = ""; st.textContent = t("ytBad"); return; }
-  const src = YT_ORIGIN + "/embed/" + encodeURIComponent(id) +
+  if (!id) { closeYt(); st.textContent = t("ytBad"); return; }
+  ytId_ = id;
+  mountYt();
+  st.textContent = t("ytOpened");
+}
+
+function mountYt() {
+  const box = $("ytBox");
+  if (!ytId_) return;
+  ytPlaying = false; ytHeard = false; ytTouched = false;
+  const src = YT_ORIGIN + "/embed/" + encodeURIComponent(ytId_) +
     "?enablejsapi=1&rel=0&playsinline=1&origin=" + encodeURIComponent(location.origin);
-  box.innerHTML = '<iframe src="' + src + '" title="YouTube" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>';
+  box.innerHTML = '<iframe src="' + src + '" title="YouTube" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
   box.hidden = false;
   const f = box.querySelector("iframe");
   f.addEventListener("load", () => {
-    try {
-      f.contentWindow.postMessage(JSON.stringify({ event: "listening", id: "ckmakam" }), YT_ORIGIN);
-    } catch (e) {}
+    // keep knocking until the player answers, it is not ready the moment the frame loads
+    let n = 0;
+    const h = setInterval(() => {
+      try {
+        f.contentWindow.postMessage(JSON.stringify({ event: "listening", id: "ckmakam" }), YT_ORIGIN);
+      } catch (e) {}
+      if (++n > 10 || ytHeard) clearInterval(h);
+    }, 350);
   });
-  st.textContent = t("ytOpened");
+}
+
+function closeYt() {
+  ytId_ = ""; ytPlaying = false; ytHeard = false; ytTouched = false;
+  const box = $("ytBox");
+  box.innerHTML = "";
+  box.hidden = true;
+}
+
+// pausing by message can fail, so rebuilding the frame is the guarantee
+function silenceYt() {
+  if (!ytId_) return;
+  ytCmd("pauseVideo");
+  setTimeout(() => { if (ytPlaying || (!ytHeard && ytTouched)) mountYt(); }, 700);
 }
 
 const canGrab = () => !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
@@ -1610,9 +1661,12 @@ async function toggleGrab() {
     st.textContent = t("ytNoAudio");
     return;
   }
+  // the tab records everything the tab makes, so the app has to go quiet
+  if (state.playing) stopPlayback();
+  $("play").disabled = true;
+  if (nodes) nodes.master.gain.value = 0;
   grabStream = stream;
   grabChunks = [];
-  // the browser bar can end the share at any time
   stream.getTracks().forEach(tr => { tr.onended = () => { if (grabRec) stopGrab(); }; });
   const rec = new MediaRecorder(new MediaStream(tracks));
   grabRec = rec;
@@ -1621,16 +1675,21 @@ async function toggleGrab() {
   rec.start();
   $("ytGrab").textContent = t("ytStop");
   $("ytGrab").classList.add("on");
-  st.textContent = t("ytGrabbing");
-  // if the video sits in our own panel, start it from the top
+  ytTouched = true;
   setTimeout(() => { ytCmd("seekTo", [0, true]); ytCmd("playVideo"); }, 400);
-  grabTimer = setTimeout(() => { if (grabRec) stopGrab(); }, 45000);
+  grabLeft = 45;
+  const tick = () => {
+    st.textContent = t("ytGrabbing").replace("%s", grabLeft) + (ytPlaying ? "" : " " + t("ytPressPlay"));
+    if (--grabLeft < 0) { if (grabRec) stopGrab(); return; }
+  };
+  tick();
+  grabTick = setInterval(tick, 1000);
 }
 
 function stopGrab() {
-  clearTimeout(grabTimer);
-  grabTimer = 0;
-  ytCmd("pauseVideo");
+  clearTimeout(grabTimer); clearInterval(grabTick);
+  grabTimer = 0; grabTick = 0;
+  silenceYt();
   if (grabRec && grabRec.state !== "inactive") { try { grabRec.stop(); } catch (e) { finishGrab(); } }
   else finishGrab();
 }
@@ -1640,9 +1699,12 @@ async function finishGrab() {
   const chunks = grabChunks;
   grabChunks = [];
   grabRec = null;
+  clearInterval(grabTick); grabTick = 0;
   if (grabStream) { grabStream.getTracks().forEach(tr => tr.stop()); grabStream = null; }
   $("ytGrab").textContent = t("ytGrab");
   $("ytGrab").classList.remove("on");
+  $("play").disabled = false;
+  if (nodes) nodes.master.gain.value = 1;
   const st = $("ytStatus");
   const blob = new Blob(chunks, { type: type });
   if (blob.size < 4000) { st.textContent = t("ytEmpty"); return; }
@@ -1651,7 +1713,7 @@ async function finishGrab() {
     state.fileBuf = await ctx.decodeAudioData(await blob.arrayBuffer());
     $("fileTools").hidden = false;
     drawFileWave();
-    st.textContent = t("ytGot") + " " + state.fileBuf.duration.toFixed(1) + "s";
+    st.textContent = t("ytGot") + " " + state.fileBuf.duration.toFixed(1) + "s. " + t("ytNext");
     $("fileStatus").textContent = "";
   } catch (e) {
     state.fileBuf = null;
@@ -1688,6 +1750,7 @@ function drawFileWave() {
 // use the file as a layer, the same way a mic take is used
 function fileAsLayer() {
   if (!state.fileBuf) return;
+  silenceYt();
   state.voice = state.fileBuf;
   voiceBaseQ = 0;
   state.voiceOffsetQ = 0;
@@ -1731,6 +1794,7 @@ function yinPitch(d, start, win, sr) {
 function melodyToNotes(fromFile) {
   const buf = fromFile ? state.fileBuf : state.voice;
   if (!buf) return;
+  silenceYt();
   const st = $(fromFile ? "fileStatus" : "micStatus");
   st.textContent = t("analysing");
   setTimeout(() => {
@@ -1907,6 +1971,7 @@ function analyseRhythm(buffer) {
 
 function rhythmFromFile() {
   if (!state.fileBuf) return;
+  silenceYt();
   const st = $("fileStatus");
   st.textContent = t("analysing");
   setTimeout(() => {
@@ -1985,6 +2050,7 @@ function loadDemo(id) {
   syncControls();
   updateWheelText();
   $("exportStatus").textContent = t("demoLoaded");
+  silenceYt();
   initAudio().then(() => { if (!state.playing) startPlayback(); });
 }
 
@@ -2756,6 +2822,7 @@ function init() {
 
   $("play").addEventListener("click", async () => {
     await initAudio();
+    if (!state.playing) silenceYt();
     state.playing ? stopPlayback() : startPlayback();
   });
   $("bpm").addEventListener("input", e => {

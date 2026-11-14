@@ -230,7 +230,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 18px; display: grid; gap: 16p
 #ytUrl::placeholder { color: var(--muted); }
 #ytUrl:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }
 button#ytGrab.on { background: var(--accent); border-color: transparent; color: #fff; }
-button#ytGrab:disabled { opacity: 0.45; cursor: not-allowed; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
 #ytBox {
   position: relative; width: 100%; max-width: 560px; margin: 10px 0 2px;
   aspect-ratio: 16 / 9; background: var(--bg2);
