@@ -141,6 +141,7 @@ const I18N = {
     notesFound: "nota çıkarıldı", noMelody: "Tek sesli bir melodi bulunamadı. Mırıldanma ya da tek çalgı kaydı en iyi sonucu verir.",
     fileLoaded: "Dosya yüklendi,", fileBad: "Bu dosya okunamadı.",
     uploadHint: "Kendi mp3 ya da wav dosyanı yükleyip katman olarak kullanabilirsin. Notaya çevir, tek sesli kayıtlarda çalışır: mırıldanma, tek bir çalgı ya da solo vokal. Karışık bir şarkıyı enstrümanlarına ayırmaz, onu tarayıcıda yapmak mümkün değil.",
+    uploadHelp: "Notaya çevir tek sesli kayıtlarda çalışır, yani aynı anda tek bir perde duyulan kayıtlarda.\n\nEn iyi sonucu verenler:\n• Kendi mırıldanman ya da ıslığın. Telefonla sessiz bir odada kaydet, on on beş saniye yeter.\n• Tek bir çalgının solo kaydı: bağlama, ney, keman, flüt, piyano tek elle.\n• Araya çalgı karışmayan solo vokal.\n\nÇalışmayan: tam bir şarkı kaydı. Davul, bas ve birkaç çalgı aynı anda çalarken hangi sesin melodi olduğu ayırt edilemez, ortaya rastgele notalar çıkar. Karışık bir kaydı enstrümanlarına ayırmak ayrı bir iştir ve tarayıcıda yapılamaz.\n\nKayıt ipuçları: arkada televizyon, klima ya da sokak sesi olmasın. Mikrofona çok yaklaşma, patlama sesleri perdeyi bozar. Tempoyu önce uygulamada ayarla; loop çalarken mırıldanırsan notalar doğru yere oturur. mp3, wav, m4a ve ogg okunur.\n\nSon olarak: başkasının şarkısını indirip kullanmak hem eser sahibinin hakkına girer hem de çoğu sitenin kurallarına aykırıdır. Kendi sesin ya da kendi çaldığın kayıt hem en doğru sonucu verir hem de sorunsuzdur. Hazır ses arıyorsan Freesound'un CC0 bölümüne bak.",
     demo: "Demo", demoPick: "Bir türkü seç", demoLoaded: "Türkü yüklendi, Çal'a bas.",
     mic: "Sesini kaydet", micRec: "Kaydı durdur", micClear: "Sesi sil",
     micOffset: "Kaydırma", fxReverb: "Yankı", fxEcho: "Eko", fxChorus: "Koro", fxDrive: "Bozulma",
@@ -243,6 +244,7 @@ const I18N = {
     notesFound: "notes found", noMelody: "No single-voice melody found. Humming or one instrument works best.",
     fileLoaded: "File loaded,", fileBad: "That file could not be read.",
     uploadHint: "Load your own mp3 or wav and use it as a layer. Find the melody works on single-voice material: humming, one instrument, or a solo vocal. It does not split a finished song into its instruments, which a browser cannot do.",
+    uploadHelp: "Find the melody works on single-voice material, where only one pitch sounds at a time.\n\nWhat works best:\n• Your own humming or whistling. A phone in a quiet room, ten or fifteen seconds is plenty.\n• One instrument on its own: bağlama, ney, violin, flute, piano with one hand.\n• A solo vocal with no instruments behind it.\n\nWhat does not work: a finished song. With drums, bass and several instruments at once there is no way to tell which pitch is the melody, and you get nonsense notes. Splitting a mixed recording into its instruments is a different job and a browser cannot do it.\n\nRecording tips: no television, air conditioning or street noise behind you. Do not crowd the mic, plosives ruin the pitch. Set the tempo first; if you hum while the loop plays, the notes land in the right place. mp3, wav, m4a and ogg are read.\n\nOne last thing: taking somebody else's song and uploading it goes against the rights of whoever made it and against most sites' terms. Your own voice or your own playing gives the better result anyway. For ready-made audio, look at the CC0 section of Freesound.",
     demo: "Demo", demoPick: "Pick a folk song", demoLoaded: "Folk song loaded, press Play.",
     mic: "Record your voice", micRec: "Stop recording", micClear: "Delete voice",
     micOffset: "Nudge", fxReverb: "Reverb", fxEcho: "Echo", fxChorus: "Chorus", fxDrive: "Drive",
@@ -2135,7 +2137,7 @@ function showTip(btn, text) {
   tip.textContent = text;
   tip.hidden = false;
   const r = btn.getBoundingClientRect();
-  const w = Math.min(320, window.innerWidth - 24);
+  const w = Math.min(text.length > 300 ? 460 : 320, window.innerWidth - 24);
   tip.style.width = w + "px";
   tip.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + "px";
   tip.style.top = r.bottom + window.scrollY + 8 + "px";
@@ -2409,6 +2411,7 @@ function init() {
   wireHelp("gridHelp", () => t("gridHint"));
   wireHelp("rollHelp", () => t("rollHint"));
   wireHelp("wheelHelp", () => t("wheelHelp"));
+  wireHelp("uploadHelp", () => t("uploadHelp"));
   document.addEventListener("click", e => {
     if (!e.target.closest(".help") && !e.target.closest("#tip")) hideTip();
   });

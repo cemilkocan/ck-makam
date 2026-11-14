@@ -348,8 +348,9 @@ main { max-width: 1340px; margin: 0 auto; padding: 18px; display: grid; gap: 16p
 .tip {
   position: absolute; z-index: 60; background: var(--panel3); color: var(--ink);
   border: 1px solid var(--edge); border-left: 3px solid var(--accent2);
-  border-radius: 10px; padding: 11px 14px; font-size: 13px; line-height: 1.55;
+  border-radius: 10px; padding: 11px 14px; font-size: 13px; line-height: 1.6;
   box-shadow: 0 10px 30px rgba(0,0,0,.55);
+  white-space: pre-line; max-height: 60vh; overflow-y: auto;
 }
 
 /* ---------- tour ---------- */
